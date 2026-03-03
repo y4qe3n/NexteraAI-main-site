@@ -1,0 +1,9 @@
+# Copy this file to .dev.vars and fill in your credentials.
+# .dev.vars is gitignored and used only for local development.
+
+MOCHA_USERS_SERVICE_API_URL=https://your-mocha-users-service-url
+MOCHA_USERS_SERVICE_API_KEY=your-mocha-users-service-api-key
+
+# Email OTP 2FA (Resend.com). Without RESEND_API_KEY, OTP codes are logged to console only.
+RESEND_API_KEY=re_xxxxxxxxxxxx
+OTP_EMAIL_FROM=no-reply@yourdomain.com
