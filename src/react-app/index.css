@@ -199,13 +199,17 @@ h6,
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.85rem 1.6rem;
+  padding: 0 1.6rem;
+  height: 48px;
   border-radius: 999px;
   background: linear-gradient(180deg, #7a5fd1 0%, #624cab 100%);
   color: #fff;
   font-weight: 600;
+  font-size: 0.95rem;
   letter-spacing: -0.01em;
+  line-height: 1;
   box-shadow:
     0 0 0 1px rgba(255,255,255,0.06) inset,
     0 8px 30px -6px rgba(98,76,171,0.55);
@@ -222,12 +226,17 @@ h6,
 .nx-btn-ghost {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.85rem 1.6rem;
+  padding: 0 1.6rem;
+  height: 48px;
   border-radius: 999px;
   color: var(--nx-text);
   background: rgba(224, 212, 255, 0.04);
   border: 1px solid var(--nx-border-strong);
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1;
   box-sizing: border-box;
   transition: background 0.25s ease, border-color 0.25s ease;
 }
