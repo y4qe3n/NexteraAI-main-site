@@ -1,37 +1,36 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "019c820f-9b27-7e4b-a958-19c0cc493f0c",
-  "main": "./src/worker/index.ts",
-  "compatibility_date": "2025-06-17",
-  "compatibility_flags": ["nodejs_compat"],
-  "observability": {
-    "enabled": true
-  },
-  "upload_source_maps": true,
-  "assets": {
-    "not_found_handling": "single-page-application"
-  },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "019c820f-9b27-7e4b-a958-19c0cc493f0c",
-      "database_id": "019c820f-9b27-7e4b-a958-19c0cc493f0c"
-    }
-  ],
-	  "r2_buckets": [
-	    {
-	      "binding": "R2_BUCKET",
-	      "bucket_name": "019c820f-9b27-7e4b-a958-19c0cc493f0c"
-	    }
-	  ],
-	  "services": [
-	    {
-	      "binding": "EMAILS",
-	      "service": "emails-service",
-	      "entrypoint": "EmailService",
-	      "props": {
-	        "appId": "019c820f-9b27-7e4b-a958-19c0cc493f0c"
-	      }
-	    }
-	  ]
-	}
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "nexteraai-main-site",
+	"main": "./src/worker/index.ts",
+	"compatibility_date": "2025-06-17",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"workers_dev": true,
+	"routes": [
+		{ "pattern": "www.nexteraai.co.za/*", "zone_name": "nexteraai.co.za" },
+		{ "pattern": "nexteraai.co.za/*", "zone_name": "nexteraai.co.za" }
+	],
+	"observability": {
+		"enabled": true
+	},
+	"upload_source_maps": true,
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "nextera",
+			"database_id": "8d698c9c-f838-4fa3-b972-2ec5bcee71c0",
+			"migrations_dir": "migrations"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "R2_BUCKET",
+			"bucket_name": "019c820f-9b27-7e4b-a958-19c0cc493f0c"
+		}
+	],
+	"assets": {
+		"directory": "./dist/client",
+		"not_found_handling": "single-page-application"
+	},
+}

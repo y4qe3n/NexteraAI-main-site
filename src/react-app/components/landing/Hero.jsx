@@ -67,7 +67,7 @@ export default function Hero() {
           without managing a single extra tool.
         </p>
 
-        <div className="hero-cta mt-9 flex flex-row items-center justify-center gap-3">
+        <div className="hero-cta mt-9 flex flex-row items-center justify-center gap-3 flex-wrap">
           <a href="#pricing" data-testid="hero-cta-primary" className="nx-btn-primary nx-shine">
             <ShieldCheck className="w-4 h-4" />
             Get Started
