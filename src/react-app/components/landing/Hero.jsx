@@ -67,13 +67,13 @@ export default function Hero() {
           without managing a single extra tool.
         </p>
 
-        <div className="hero-cta mt-9 flex flex-row items-center justify-center gap-3 flex-wrap">
-          <a href="#pricing" data-testid="hero-cta-primary" className="nx-btn-primary nx-shine">
+        <div className="hero-cta mt-9 flex flex-row items-center justify-center gap-3">
+          <a href="#pricing" data-testid="hero-cta-primary" className="nx-btn-primary nx-shine h-12">
             <ShieldCheck className="w-4 h-4" />
             Get Started
             <ArrowRight className="w-4 h-4" />
           </a>
-          <a href="#solution" data-testid="hero-cta-secondary" className="nx-btn-ghost">
+          <a href="#solution" data-testid="hero-cta-secondary" className="nx-btn-ghost h-12">
             <Play className="w-4 h-4" />
             See it in action
           </a>
