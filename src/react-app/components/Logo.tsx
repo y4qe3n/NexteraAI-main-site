@@ -1,5 +1,3 @@
-import { Shield } from "lucide-react";
-
 interface LogoProps {
   className?: string;
   onClick?: () => void;
@@ -7,16 +5,14 @@ interface LogoProps {
 
 export function Logo({ className = "", onClick }: LogoProps) {
   return (
-    <div 
+    <div
       className={`flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity ${className}`}
       onClick={onClick}
     >
-      <div className="relative">
-        <div className="absolute inset-0 bg-primary/50 blur-lg rounded-full" />
-        <Shield className="relative w-8 h-8 text-primary" />
-      </div>
-      <span className="text-xl font-bold tracking-tight">
-        <span className="text-white">Nextera</span><span className="text-primary">AI</span>
+      <img src="/favlogo.svg" alt="NexteraAI" className="w-12 h-12 ml-1 translate-x-1" />
+      <span className="text-xl font-bold tracking-tight select-none">
+        <span className="text-white">Nextera</span>
+        <span className="text-primary">AI</span>
       </span>
     </div>
   );

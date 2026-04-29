@@ -68,12 +68,12 @@ export default function Hero() {
         </p>
 
         <div className="hero-cta mt-9 flex flex-row items-center justify-center gap-3">
-          <a href="#pricing" data-testid="hero-cta-primary" className="nx-btn-primary nx-shine h-12">
+          <a href="#pricing" data-testid="hero-cta-primary" className="nx-btn-primary nx-shine" style={{ height: '48px', display: 'inline-flex', alignItems: 'center' }}>
             <ShieldCheck className="w-4 h-4" />
             Get Started
             <ArrowRight className="w-4 h-4" />
           </a>
-          <a href="#solution" data-testid="hero-cta-secondary" className="nx-btn-ghost h-12">
+          <a href="#solution" data-testid="hero-cta-secondary" className="nx-btn-ghost" style={{ height: '48px', display: 'inline-flex', alignItems: 'center' }}>
             <Play className="w-4 h-4" />
             See it in action
           </a>

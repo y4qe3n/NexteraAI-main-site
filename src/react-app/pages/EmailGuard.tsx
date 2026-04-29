@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Card } from "@/react-app/components/ui/card";
 import { Button } from "@/react-app/components/ui/button";
 import { Input } from "@/react-app/components/ui/input";
-import { Label } from "@/react-app/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/react-app/components/ui/tabs";
 import {
   Table,

@@ -110,21 +110,21 @@ const PLANS = [
   {
     id: "basic",
     name: "Basic",
-    price: "R499/mo",
+    price: "R1000/mo",
     features: ["Up to 10 devices", "Endpoint Shield", "Email Guard", "Monthly reports"],
     highlighted: false,
   },
   {
     id: "pro",
     name: "Pro",
-    price: "R999/mo",
+    price: "R2000/mo",
     features: ["Up to 25 devices", "All Basic features", "POPIA Compliance", "Missed Call SMS", "Priority support"],
     highlighted: true,
   },
   {
     id: "enterprise",
     name: "Enterprise",
-    price: "R1,999/mo",
+    price: "R3000/mo",
     features: ["Unlimited devices", "All Pro features", "Academy", "Dedicated account manager"],
     highlighted: false,
   },
@@ -350,12 +350,16 @@ function Step3({ data, set }: { data: FormData; set: (k: keyof FormData, v: any)
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between p-3 rounded-lg border border-border">
-          <div>
-            <p className="text-sm font-medium flex items-center gap-2"><PhoneOff className="w-4 h-4 text-primary" /> Enable Missed Call Follow-up SMS</p>
-            <p className="text-xs text-muted-foreground">Auto-SMS callers when you miss their call. Requires virtual number setup.</p>
+        <div className="rounded-xl border border-border bg-background/50 p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <PhoneOff className="w-4 h-4 text-primary" />
+            <p className="text-sm font-medium">Missed Call Follow-up</p>
           </div>
-          <Switch checked={data.wants_missed_call_sms} onCheckedChange={(v) => set("wants_missed_call_sms", v)} />
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            We’ve paused the UI for this automation while we transition it to NexteraAI V2. The backend
+            automations and logs remain active, and we’ll restore the full setup experience once the
+            new workflow ships.
+          </p>
         </div>
       </div>
 
@@ -422,7 +426,7 @@ function Step4({ data, set }: { data: FormData; set: (k: keyof FormData, v: any)
       </div>
 
       <p className="text-xs text-center text-muted-foreground">
-        You'll be redirected to PayFast to complete payment securely. You can also pay via Ozow (Instant EFT).
+        You'll be redirected to PayFast to complete payment securely.
       </p>
     </div>
   );
@@ -440,15 +444,6 @@ function Step5({ data }: { data: FormData }) {
         { label: "Google guide", url: "https://myaccount.google.com/security" },
       ],
     },
-    ...(data.wants_missed_call_sms
-      ? [{
-          icon: PhoneOff,
-          title: "Set up missed call follow-up",
-          desc: "Forward your business number to your virtual number.",
-          links: [{ label: "Configure now", url: "/dashboard/missed-call-settings" }],
-          internal: true,
-        }]
-      : []),
     {
       icon: BookOpen,
       title: "Invite staff to Academy training",

@@ -16,6 +16,7 @@ export default defineConfig({
 	  },
   build: {
     chunkSizeWarningLimit: 5000,
+    sourcemap: false,
   },
   resolve: {
     alias: {

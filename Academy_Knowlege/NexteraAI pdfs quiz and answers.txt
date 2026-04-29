@@ -1,0 +1,55 @@
+NexteraAI pdfs quiz and answers
+
+Module 1: 
+
+Quick Quiz – Test Your Knowledge (Answers at bottom)
+1.	How many cyber attacks hit SA organisations per week on average in recent reports? a) ~500 b) ~2,100+ c) ~10,000
+2.	What does the "A" in CIA Triad stand for? a) Authentication b) Availability c) Access
+3.	Which is the #1 quick action to take today? a) Buy expensive firewall b) Enable MFA c) Ignore updates
+Answers: 1-b, 2-b, 3-b Score 3/3? You're already thinking like a cyber protector!
+
+Module 2 :
+
+Quick Quiz – 4 Questions
+
+Phishing is the top threat in SA because it makes up what % of attacks?
+a) 10%   b) 45%+   c) 5%
+Real SARS/FNB will NEVER ask for?
+a) Your name   b) OTP via SMS   c) Feedback
+Best first step on suspicious link?
+a) Click to check   b) Hover to see URL   c) Forward to friend
+If in doubt, forward to?
+a) The sender   b) phishing@sars.gov.za or bank fraud line   c) Ignore
+
+Answers: 1-b, 2-b, 3-b, 4-b
+3–4 correct? You're phishing-proof! Share with staff.
+
+module 3 : 
+
+Quick Quiz – 4 Questions
+
+What % of breaches start with stolen/compromised credentials (Verizon 2025)?
+a) 5%   b) 22%   c) 50%
+Modern best practice: Length or complexity first?
+a) Complexity   b) Length (12–16+ chars)   c) Change every month
+Best free password manager for small businesses?
+a) Sticky notes   b) Bitwarden   c) Reuse same one
+When to force password change?
+a) Every 90 days   b) Only if breached   c) Never
+
+Answers: 1-b, 2-b, 3-b, 4-b
+All correct? Your access is now fortress-strong!
+
+module 4: 
+
+Quick Quiz – 3 Questions
+
+What's the max fine under POPIA?
+a) R1 million   b) R10 million   c) No fines
+How many conditions for lawful processing?
+a) 5   b) 8   c) 10
+First step for most small businesses?
+a) Ignore it   b) Appoint Information Officer + add privacy notice   c) Hire lawyer
+
+Answers: 1-b, 2-b, 3-b
+All correct? Great job – you're building strong privacy habits!

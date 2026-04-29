@@ -10,10 +10,12 @@ import {
   TableRow,
 } from "@/react-app/components/ui/table";
 import { Badge } from "@/react-app/components/ui/badge";
-import { Loader2, Shield, AlertTriangle, CheckCircle, Plus } from "lucide-react";
+import { Loader2, Shield, AlertTriangle, CheckCircle, Plus, Scan, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/react-app/components/ui/dialog";
 import { Input } from "@/react-app/components/ui/input";
 import { Label } from "@/react-app/components/ui/label";
+import { useAccessControl } from "@/react-app/hooks/useAccessControl";
+import { Link } from "react-router";
 
 type Device = {
   id: number;
@@ -26,6 +28,24 @@ type Device = {
   updated_at?: string;
 };
 
+const DEVICE_TYPE_OPTIONS = [
+  "Laptop",
+  "Desktop",
+  "Server",
+  "Mobile",
+  "IoT",
+  "Other",
+];
+
+const OS_OPTIONS = [
+  "Windows 11",
+  "macOS Ventura",
+  "Ubuntu 24.04",
+  "iOS 18",
+  "Android 14",
+  "Other",
+];
+
 function formatDate(iso?: string) {
   if (!iso) return "—";
   const d = new Date(iso);
@@ -34,13 +54,16 @@ function formatDate(iso?: string) {
 }
 
 export function EndpointShieldPage() {
+  const { isPro } = useAccessControl();
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAddingDevice, setIsAddingDevice] = useState(false);
   const [newDeviceName, setNewDeviceName] = useState("");
-  const [newDeviceType, setNewDeviceType] = useState("");
-  const [newDeviceOs, setNewDeviceOs] = useState("");
+  const [deviceTypeSelection, setDeviceTypeSelection] = useState("Laptop");
+  const [customDeviceType, setCustomDeviceType] = useState("");
+  const [osSelection, setOsSelection] = useState("Windows 11");
+  const [customOs, setCustomOs] = useState("");
   const [actionLoading, setActionLoading] = useState<number | null>(null);
 
   useEffect(() => {
@@ -79,16 +102,24 @@ export function EndpointShieldPage() {
         credentials: "include",
         body: JSON.stringify({
           name: newDeviceName,
-          device_type: newDeviceType || null,
-          os: newDeviceOs || null
+          device_type:
+            deviceTypeSelection === "Other"
+              ? customDeviceType.trim() || null
+              : deviceTypeSelection || null,
+          os:
+            osSelection === "Other"
+              ? customOs.trim() || null
+              : osSelection || null,
         }),
       });
       if (!res.ok) throw new Error("Failed to add device");
       const newDevice = await res.json();
       setDevices([...devices, newDevice]);
       setNewDeviceName("");
-      setNewDeviceType("");
-      setNewDeviceOs("");
+      setDeviceTypeSelection("Laptop");
+      setCustomDeviceType("");
+      setOsSelection("Windows 11");
+      setCustomOs("");
       setIsAddingDevice(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add device");
@@ -177,43 +208,83 @@ export function EndpointShieldPage() {
                 Add New Device
               </Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Device</DialogTitle>
+            <DialogContent className="max-w-lg rounded-2xl border border-white/10 bg-slate-950 p-6 shadow-[0_25px_70px_rgba(12,17,43,0.7)] text-white">
+              <DialogHeader className="mb-4">
+                <DialogTitle className="text-lg font-semibold text-white">
+                  Add New Device
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground">
+                  Provide the device details and we’ll start protecting it immediately.
+                </p>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="space-y-4 text-sm text-white">
                 <div className="space-y-2">
-                  <Label htmlFor="deviceName">Device Name</Label>
+                  <Label htmlFor="deviceName" className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Device Name
+                  </Label>
                   <Input
                     id="deviceName"
                     value={newDeviceName}
                     onChange={(e) => setNewDeviceName(e.target.value)}
                     placeholder="e.g., Office Laptop"
                     required
+                    className="bg-slate-900 text-white"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="deviceType">Device Type</Label>
-                  <Input
+                  <Label htmlFor="deviceType" className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Device Type
+                  </Label>
+                  <select
                     id="deviceType"
-                    value={newDeviceType}
-                    onChange={(e) => setNewDeviceType(e.target.value)}
-                    placeholder="e.g., Laptop"
-                  />
+                    className="w-full rounded-xl border border-border bg-slate-900 px-3 py-2 text-sm text-white outline-none"
+                    value={deviceTypeSelection}
+                    onChange={(e) => setDeviceTypeSelection(e.target.value)}
+                  >
+                    {DEVICE_TYPE_OPTIONS.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                  {deviceTypeSelection === "Other" && (
+                    <Input
+                      value={customDeviceType}
+                      onChange={(e) => setCustomDeviceType(e.target.value)}
+                      placeholder="Describe the device type"
+                      className="bg-slate-900 text-white"
+                    />
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="deviceOs">Operating System</Label>
-                  <Input
+                  <Label htmlFor="deviceOs" className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Operating System
+                  </Label>
+                  <select
                     id="deviceOs"
-                    value={newDeviceOs}
-                    onChange={(e) => setNewDeviceOs(e.target.value)}
-                    placeholder="e.g., Windows 11"
-                  />
+                    className="w-full rounded-xl border border-border bg-slate-900 px-3 py-2 text-sm text-white outline-none"
+                    value={osSelection}
+                    onChange={(e) => setOsSelection(e.target.value)}
+                  >
+                    {OS_OPTIONS.map((os) => (
+                      <option key={os} value={os}>
+                        {os}
+                      </option>
+                    ))}
+                  </select>
+                  {osSelection === "Other" && (
+                    <Input
+                      value={customOs}
+                      onChange={(e) => setCustomOs(e.target.value)}
+                      placeholder="Specify the operating system"
+                      className="bg-slate-900 text-white"
+                    />
+                  )}
                 </div>
                 <Button
                   onClick={handleAddDevice}
                   disabled={actionLoading === 0 || !newDeviceName}
-                  className="w-full text-white"
+                  className="w-full bg-gradient-to-r from-primary to-purple-500 text-white"
                 >
                   {actionLoading === 0 ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -332,21 +403,39 @@ export function EndpointShieldPage() {
                         >
                           {actionLoading === device.id ? (
                             <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                          ) : null}
-                          Scan Now
+                          ) : (
+                            <Scan className="w-3 h-3 mr-1" />
+                          )}
+                          Scan
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-white"
-                          onClick={() => handleIsolate(device.id)}
-                          disabled={actionLoading === device.id}
-                        >
-                          {actionLoading === device.id ? (
-                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                          ) : null}
-                          Isolate
-                        </Button>
+                        {isPro ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-white"
+                            onClick={() => handleIsolate(device.id)}
+                            disabled={actionLoading === device.id}
+                          >
+                            {actionLoading === device.id ? (
+                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            ) : (
+                              <Lock className="w-3 h-3 mr-1" />
+                            )}
+                            Isolate
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-white opacity-60"
+                            asChild
+                          >
+                            <Link to="/dashboard/settings">
+                              <Lock className="w-3 h-3 mr-1" />
+                              Pro
+                            </Link>
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

@@ -6,7 +6,7 @@
 // Note: This is a placeholder script. In a real Cloudflare Workers environment,
 // you would use D1 database migrations or a similar mechanism.
 
-async function setupDatabase(env) {
+async function setupDatabase(env: Env) {
   console.log('Setting up database tables and seeding data...');
 
   // Create users table if not exists
@@ -60,8 +60,8 @@ async function setupDatabase(env) {
   `);
 
   // Seed default training modules if table is empty
-  const moduleCount = await env.DB.prepare('SELECT COUNT(*) as count FROM training_modules').first();
-  if (moduleCount.count === 0) {
+  const moduleCount = await env.DB.prepare('SELECT COUNT(*) as count FROM training_modules').first<{ count: number }>();
+  if ((moduleCount?.count ?? 0) === 0) {
     console.log('Seeding default training modules...');
     await env.DB.prepare(`
       INSERT INTO training_modules (title, description, duration)
@@ -82,18 +82,16 @@ async function setupDatabase(env) {
 // This function would be called during worker initialization or via a setup route
 // For simplicity, it's not directly executable in this context but serves as a reference
 
-export async function initializeDatabase(env) {
+export async function initializeDatabase(env: Env) {
   try {
     await setupDatabase(env);
     return { success: true, message: 'Database initialized successfully' };
   } catch (error) {
     console.error('Error initializing database:', error);
-    return { success: false, message: 'Failed to initialize database', error: error.message };
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, message: 'Failed to initialize database', error: message };
   }
 }
 
 // For direct execution during development (not in production worker context)
 // This would need to be adapted based on your environment setup
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { initializeDatabase };
-}

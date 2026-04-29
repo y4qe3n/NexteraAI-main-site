@@ -1,0 +1,7 @@
+Auth service error: Error: internal error; reference = kc2n2i7v61gr373ma7efg6s8
+    at G:/NexteraAI Main site/NexteraAI/src/worker/index.ts:497:22
+    at dispatch (G:/NexteraAI Main site/NexteraAI/node_modules/.vite/deps_019c820f_9b27_7e4b_a958_19c0cc493f0c/chunk-B7OURS62.js:36:17)
+    at G:/NexteraAI Main site/NexteraAI/node_modules/.vite/deps_019c820f_9b27_7e4b_a958_19c0cc493f0c/chunk-B7OURS62.js:714:25
+    at maybeCaptureError (workers/runner-worker.js:49:10) {
+  remote: true
+}

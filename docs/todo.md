@@ -35,17 +35,13 @@
 10. ✅ **Missed Call Follow-up** - Complete (UI + API + Africa's Talking)
 11. ✅ **Onboarding Checklist** - Complete (/dashboard/onboarding — dynamic checklist)
 
-## Missed Call Follow-up ✅ COMPLETE
+## Missed Call Follow-up (NexteraAI V2)
 
-- ✅ Settings page: /dashboard/missed-call-settings (toggle, SMS template, virtual number, test SMS)
-- ✅ Logs page: /dashboard/missed-calls (table, stats, CSV export)
-- ✅ Webhook POST /api/missed-call-webhook (Africa's Talking call events)
-- ✅ SMS reply webhook POST /api/missed-call-sms-callback (opt-out handling)
-- ✅ CRUD for settings, logs, opt-outs
-- ✅ DB migration: migrations/12.sql (missed_call_settings, missed_call_logs, sms_opt_outs)
-- ✅ Landing page updated: features + pricing tiers
+- ⚙️ Backend automations, webhooks, and DB schema remain live for existing customers; no frontend controls are available in V1.
+- 🆕 Settings/logs UI and onboarding links have moved to the V2 release, but the logs data and SMS pipelines still work behind the scenes.
+- 🧮 Keep using AT_API_KEY/AT_USERNAME/AT_SENDER_ID for Africa's Talking integration; callback URLs stay the same.
 
-**ENV VARS NEEDED**: AT_API_KEY, AT_USERNAME (use "sandbox" for testing), AT_SENDER_ID (optional)
+**ENV VARS STILL IN PLACE**: AT_API_KEY, AT_USERNAME (use "sandbox" for testing), AT_SENDER_ID (optional)
 **Africa's Talking Voice Callback URL**: https://yourapp/api/missed-call-webhook
 **SMS Callback URL**: https://yourapp/api/missed-call-sms-callback
 

@@ -41,7 +41,7 @@ const linkMap: Record<string, string> = {
   devices: "/dashboard/endpoints",
   compliance: "/dashboard/compliance",
   subscription: "/dashboard/settings",
-  missed_call: "/dashboard/missed-call-settings",
+  missed_call: "/dashboard/missed-calls",
   training: "/dashboard/training",
   mfa: "/dashboard/settings",
 };

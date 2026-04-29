@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/react-app/components/ui/table";
 import { Badge } from "@/react-app/components/ui/badge";
-import { Loader2, Lock, Globe, Smartphone, Monitor, X, Trash2, Eye } from "lucide-react";
+import { Loader2, Lock, Smartphone, Monitor, X, Trash2, Eye } from "lucide-react";
 import { PieChart, AlertTriangle } from "lucide-react";
 
 type LoginActivity = {

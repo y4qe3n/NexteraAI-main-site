@@ -10,7 +10,9 @@ import {
   TableRow,
 } from "@/react-app/components/ui/table";
 import { Badge } from "@/react-app/components/ui/badge";
-import { Loader2, Database, Download, RefreshCw } from "lucide-react";
+import { Loader2, Database, Download, RefreshCw, Calendar, Crown } from "lucide-react";
+import { useAccessControl } from "@/react-app/hooks/useAccessControl";
+import { Link } from "react-router";
 
 type Backup = {
   id: number;
@@ -34,6 +36,7 @@ function formatSize(bytes: number) {
 }
 
 export function DataVaultPage() {
+  const { isPro } = useAccessControl();
   const [backups, setBackups] = useState<Backup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -189,6 +192,47 @@ export function DataVaultPage() {
           <Database className="w-6 h-6 text-primary" />
         </Card>
       </div>
+
+      {/* Pro-only automated backup scheduling */}
+      {isPro ? (
+        <Card className="p-4 bg-gradient-to-r from-purple-500/10 to-primary/5 border-primary/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Automated Backup Scheduling</p>
+                <p className="text-sm text-muted-foreground">
+                  Daily backups enabled • Next backup: Tonight at 2:00 AM
+                </p>
+              </div>
+            </div>
+            <Badge variant="outline" className="border-primary/40 text-primary">
+              Pro Feature
+            </Badge>
+          </div>
+        </Card>
+      ) : (
+        <Card className="p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/5 border-amber-500/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                <Crown className="w-5 h-5 text-amber-500" />
+              </div>
+              <div>
+                <p className="font-medium">Automated Backups</p>
+                <p className="text-sm text-muted-foreground">
+                  Upgrade to Pro for daily automated backups
+                </p>
+              </div>
+            </div>
+            <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white" asChild>
+              <Link to="/dashboard/settings">Upgrade</Link>
+            </Button>
+          </div>
+        </Card>
+      )}
 
       <Card className="p-0 overflow-hidden">
         <div className="p-4 border-b border-border flex items-center justify-between">

@@ -4,9 +4,11 @@ import { Button } from "@/react-app/components/ui/button";
 import { Input } from "@/react-app/components/ui/input";
 import { Label } from "@/react-app/components/ui/label";
 import { Switch } from "@/react-app/components/ui/switch";
-import { Badge } from "@/react-app/components/ui/badge";
-import { Loader2, Settings, User, Mail, Bell, Lock, CheckCircle, CreditCard, Shield } from "lucide-react";
+import { Loader2, Settings, User, Mail, Bell, Lock, CheckCircle, Key, Clock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/react-app/components/ui/tabs";
+import { useAuth } from "@/react-app/lib/AuthContext";
+import { ROLE_EMPLOYEE } from "@/react-app/constants/roles";
+import { SubscriptionManagement } from "@/react-app/components/SubscriptionManagement";
 
 type UserSettings = {
   id: number;
@@ -18,13 +20,26 @@ type UserSettings = {
 };
 
 export function SettingsPage() {
+  const { admin } = useAuth();
+  const userRole = admin?.role || "admin";
+  const isEmployee = userRole === ROLE_EMPLOYEE;
+  
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saveLoading, setSaveLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showChangePassword, setShowChangePassword] = useState(false);
-  const [passwordEmailSent, setPasswordEmailSent] = useState(false);
+  
+  // Password change request state
+  const [passwordRequestStatus, setPasswordRequestStatus] = useState<{
+    id: number;
+    status: string;
+    requested_at: string;
+    reviewed_at: string | null;
+  } | null>(null);
+  const [requestingPassword, setRequestingPassword] = useState(false);
+  const [requestError, setRequestError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -35,6 +50,15 @@ export function SettingsPage() {
         if (!res.ok) throw new Error("Failed to load settings");
         const data = await res.json();
         setSettings(data);
+        
+        // Fetch password change request status for employees
+        if (isEmployee) {
+          const reqRes = await fetch("/api/user/password-change-request", { credentials: "include" });
+          if (reqRes.ok) {
+            const reqData = await reqRes.json();
+            setPasswordRequestStatus(reqData.request);
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
@@ -75,6 +99,33 @@ export function SettingsPage() {
       setError(err instanceof Error ? err.message : "Failed to save settings");
     } finally {
       setSaveLoading(false);
+    }
+  };
+
+  const handleRequestPasswordChange = async () => {
+    try {
+      setRequestingPassword(true);
+      setRequestError(null);
+      const res = await fetch("/api/user/password-change-request", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to submit request");
+      }
+      const data = await res.json();
+      setPasswordRequestStatus({
+        id: data.requestId,
+        status: "pending",
+        requested_at: new Date().toISOString(),
+        reviewed_at: null,
+      });
+      setSuccessMessage("Password change request submitted. An admin will review your request.");
+    } catch (err) {
+      setRequestError(err instanceof Error ? err.message : "Failed to submit request");
+    } finally {
+      setRequestingPassword(false);
     }
   };
 
@@ -148,7 +199,7 @@ export function SettingsPage() {
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="subscription">Subscription</TabsTrigger>
+          {!isEmployee && <TabsTrigger value="subscription">Subscription </TabsTrigger>}
         </TabsList>
 
         <TabsContent value="profile" className="mt-4">
@@ -302,92 +353,23 @@ export function SettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="subscription" className="mt-4">
-          <Card className="p-6">
-            <div className="space-y-6">
-              <div className="space-y-1">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-primary" />
-                  Manage Subscription
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  View and manage your NexteraAI Security plan.
-                </p>
-              </div>
-
-              <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-lg">Professional Plan</p>
-                    <p className="text-sm text-muted-foreground">R1,999/month • Renews March 26, 2026</p>
-                  </div>
-                  <Badge variant="outline" className="border-emerald-500/40 text-emerald-400">Active</Badge>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-muted/30 rounded">
-                  <p className="text-sm text-muted-foreground">Devices Protected</p>
-                  <p className="text-2xl font-semibold">8 / 10</p>
-                </div>
-                <div className="p-4 bg-muted/30 rounded">
-                  <p className="text-sm text-muted-foreground">Users</p>
-                  <p className="text-2xl font-semibold">3 / 5</p>
-                </div>
-                <div className="p-4 bg-muted/30 rounded">
-                  <p className="text-sm text-muted-foreground">Storage Used</p>
-                  <p className="text-2xl font-semibold">45 GB / 100 GB</p>
-                </div>
-                <div className="p-4 bg-muted/30 rounded">
-                  <p className="text-sm text-muted-foreground">Support Level</p>
-                  <p className="text-2xl font-semibold">Priority</p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <h4 className="font-medium">Included Features</h4>
-                <ul className="space-y-1 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-400" /> Endpoint Shield (10 devices)</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-400" /> Email Guard with quarantine</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-400" /> Access Control with MFA</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-400" /> Data Vault backups (100GB)</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-400" /> Awareness Academy training</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-400" /> Priority email support</li>
-                </ul>
-              </div>
-
-              <div className="flex gap-2 pt-4 border-t border-border">
-                <Button variant="outline" className="text-white" onClick={() => {
-                  fetch("/api/payfast/create-payment", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "include",
-                    body: JSON.stringify({ plan: "enterprise" }),
-                  }).then(r => r.json()).then(data => {
-                    if (data.redirectUrl) window.location.href = `${data.redirectUrl}?${new URLSearchParams(data.formData).toString()}`;
-                    else alert("Unable to start upgrade. Please try again.");
-                  }).catch(() => alert("Unable to start upgrade. Please try again."));
-                }}>Upgrade Plan</Button>
-                <Button variant="outline" className="text-white" onClick={() => {
-                  fetch("/api/payfast/create-payment", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "include",
-                    body: JSON.stringify({ plan: "pro" }),
-                  }).then(r => r.json()).then(data => {
-                    if (data.redirectUrl) window.location.href = `${data.redirectUrl}?${new URLSearchParams(data.formData).toString()}`;
-                    else alert("Unable to update payment. Please try again.");
-                  }).catch(() => alert("Unable to update payment. Please try again."));
-                }}>Update Payment</Button>
-                <Button variant="outline" className="text-destructive" onClick={() => {
-                  if (confirm("Are you sure you want to cancel your subscription? This action cannot be undone.")) {
-                    alert("Subscription cancellation request submitted. You will retain access until the end of your billing period.");
-                  }
-                }}>Cancel Subscription</Button>
-              </div>
-            </div>
-          </Card>
-        </TabsContent>
+        {!isEmployee && (
+          <TabsContent value="subscription" className="mt-4">
+            <SubscriptionManagement 
+              onUpgrade={() => {
+                fetch("/api/payfast/create-payment", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include",
+                  body: JSON.stringify({ plan: "pro", billing_period: "monthly" }),
+                }).then(r => r.json()).then(data => {
+                  if (data.redirectUrl) window.location.href = `${data.redirectUrl}?${new URLSearchParams(data.formData).toString()}`;
+                  else alert("Unable to start upgrade. Please try again.");
+                }).catch(() => alert("Unable to start upgrade. Please try again."));
+              }}
+            />
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Change Password Modal */}
@@ -397,44 +379,82 @@ export function SettingsPage() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold flex items-center gap-2">
                 <Lock className="w-5 h-5" />
-                Change Password
+                {isEmployee ? "Request Password Change" : "Change Password"}
               </h3>
               <Button variant="ghost" size="sm" onClick={() => setShowChangePassword(false)}>
                 ×
               </Button>
             </div>
             
-            {passwordEmailSent ? (
-              <div className="text-center py-4">
-                <CheckCircle className="w-12 h-12 mx-auto mb-3 text-emerald-400" />
-                <p className="font-medium">Email Sent!</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Check your email at {settings?.email} for password reset instructions.
-                </p>
-                <Button className="mt-4 w-full" onClick={() => {setShowChangePassword(false); setPasswordEmailSent(false);}}>
-                  Close
-                </Button>
+            {isEmployee ? (
+              // Employee password change request UI
+              <div className="space-y-4">
+                {passwordRequestStatus?.status === "pending" ? (
+                  <div className="text-center py-4">
+                    <Clock className="w-12 h-12 mx-auto mb-3 text-amber-400" />
+                    <p className="font-medium">Request Pending</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Your password change request is awaiting admin approval. You'll receive a new password once approved.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Requested: {new Date(passwordRequestStatus.requested_at).toLocaleString()}
+                    </p>
+                    <Button className="mt-4 w-full" onClick={() => setShowChangePassword(false)}>
+                      Close
+                    </Button>
+                  </div>
+                ) : passwordRequestStatus?.status === "approved" ? (
+                  <div className="text-center py-4">
+                    <CheckCircle className="w-12 h-12 mx-auto mb-3 text-emerald-400" />
+                    <p className="font-medium">Request Approved</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Your password has been reset. Please check with your admin for the new password.
+                    </p>
+                    <Button className="mt-4 w-full" onClick={() => setShowChangePassword(false)}>
+                      Close
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      As an employee, you need admin approval to change your password. Submit a request and an admin will review it.
+                    </p>
+                    {requestError && (
+                      <p className="text-sm text-destructive">{requestError}</p>
+                    )}
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={() => setShowChangePassword(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        className="flex-1 text-white"
+                        onClick={handleRequestPasswordChange}
+                        disabled={requestingPassword}
+                      >
+                        {requestingPassword ? (
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                          <Key className="w-4 h-4 mr-2" />
+                        )}
+                        Request Change
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
+              // Admin change password UI (placeholder - direct change)
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  We'll send a password reset link to your email address ({settings?.email}).
+                  Admins can directly change their password. This feature will be implemented soon.
                 </p>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => setShowChangePassword(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    className="flex-1 text-white"
-                    onClick={() => setPasswordEmailSent(true)}
-                  >
-                    Send Email
-                  </Button>
-                </div>
+                <Button className="w-full" onClick={() => setShowChangePassword(false)}>
+                  Close
+                </Button>
               </div>
             )}
           </Card>

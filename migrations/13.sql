@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 
 CREATE TABLE IF NOT EXISTS payments (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  organization_id INTEGER NOT NULL,
+  organization_id INTEGER,
   gateway TEXT NOT NULL,
   gateway_payment_id TEXT,
   amount INTEGER NOT NULL,

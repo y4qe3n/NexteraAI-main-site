@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
+import { useAuth } from "@/react-app/contexts/AuthContext";
 import { Card } from "@/react-app/components/ui/card";
 import { Button } from "@/react-app/components/ui/button";
 import { Badge } from "@/react-app/components/ui/badge";
 import { Progress } from "@/react-app/components/ui/progress";
+import { useAccessControl } from "@/react-app/hooks/useAccessControl";
+import { EmployeeDashboard } from "./EmployeeDashboard";
 import {
   Shield,
   ShieldCheck,
@@ -21,7 +24,8 @@ import {
   AlertCircle,
   Maximize2,
   Minimize2,
-  Brain,
+  Sparkles,
+  Crown,
 } from "lucide-react";
 
 type DashboardStats = {
@@ -42,7 +46,6 @@ type DashboardStats = {
   };
   compliance: { score: number; completed: number; total: number };
   emails: { scannedThisWeek: number; threatsDetected: number };
-  ai?: { total: number; threats: number; critical: number; high: number };
 };
 
 type Threat = {
@@ -93,29 +96,85 @@ function getStatusIcon(status: string) {
 }
 
 export function Dashboard() {
+  const { user, isEmployee } = useAuth();
+  const { isBasic } = useAccessControl();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [threats, setThreats] = useState<Threat[]>([]);
   const [loading, setLoading] = useState(true);
   const [alertsExpanded, setAlertsExpanded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [partialError, setPartialError] = useState<string | null>(null);
+
+  // Show EmployeeDashboard for employees
+  if (isEmployee()) {
+    return <EmployeeDashboard />;
+  }
+
+  // Get user's first name for welcome message
+  const firstName = user?.name || "there";
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const [statsRes, threatsRes] = await Promise.all([
-          fetch("/api/dashboard/stats", { credentials: "include" }),
-          fetch("/api/threats?limit=5", { credentials: "include" }),
-        ]);
-        if (!statsRes.ok) throw new Error("Failed to load dashboard stats");
-        if (!threatsRes.ok) throw new Error("Failed to load threats");
-        const [statsData, threatsData] = await Promise.all([
-          statsRes.json(),
-          threatsRes.json(),
-        ]);
-        setStats(statsData);
-        setThreats(threatsData);
+        setPartialError(null);
+        
+        // Fetch stats and threats independently to handle partial failures
+        let statsData: DashboardStats | null = null;
+        let threatsData: Threat[] = [];
+        let statsError = false;
+        let threatsError = false;
+
+        try {
+          const statsRes = await fetch("/api/dashboard/stats", { credentials: "include" });
+          if (statsRes.ok) {
+            statsData = await statsRes.json();
+          } else {
+            statsError = true;
+          }
+        } catch (err) {
+          console.error("Stats fetch error:", err);
+          statsError = true;
+        }
+
+        try {
+          const threatsRes = await fetch("/api/threats?limit=5", { credentials: "include" });
+          if (threatsRes.ok) {
+            threatsData = await threatsRes.json();
+          } else {
+            threatsError = true;
+          }
+        } catch (err) {
+          console.error("Threats fetch error:", err);
+          threatsError = true;
+        }
+
+        // Set partial error message if some data failed
+        if (statsError || threatsError) {
+          const failedParts = [];
+          if (statsError) failedParts.push("dashboard stats");
+          if (threatsError) failedParts.push("threats data");
+          setPartialError(`Some data could not be loaded: ${failedParts.join(", ")}`);
+        }
+
+        // Show data if we got at least stats
+        if (statsData) {
+          setStats(statsData);
+          setThreats(threatsData);
+        } else if (!threatsError) {
+          // If we only got threats, show them with default stats
+          setStats({
+            organization: { id: 0, name: "My Organization", devices_limit: 10 },
+            threats: { total: 0, active: 0, blocked: 0, resolved: 0, critical: 0, high: 0 },
+            devices: { total: 0, protected: 0, active: 0, limit: 10 },
+            compliance: { score: 0, completed: 0, total: 17 },
+            emails: { scannedThisWeek: 0, threatsDetected: 0 },
+          });
+          setThreats(threatsData);
+        } else {
+          setError("Failed to load dashboard data. Please try again.");
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
@@ -208,6 +267,46 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Welcome message */}
+      <div className="flex items-center gap-2">
+        <Sparkles className="w-5 h-5 text-primary" />
+        <h1 className="text-2xl font-semibold">
+          Welcome back, {firstName}!
+        </h1>
+      </div>
+
+      {/* Upgrade banner for Basic plan users */}
+      {isBasic && (
+        <Card className="p-4 bg-gradient-to-r from-amber-500/20 via-orange-500/10 to-amber-500/5 border-amber-500/30">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                <Crown className="w-5 h-5 text-amber-500" />
+              </div>
+              <div>
+                <p className="font-medium">Upgrade to Pro</p>
+                <p className="text-sm text-muted-foreground">
+                  Get advanced threat detection, priority support, and unlimited devices.
+                </p>
+              </div>
+            </div>
+            <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white" asChild>
+              <Link to="/dashboard/settings">Upgrade Now</Link>
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* Partial data warning */}
+      {partialError && (
+        <Card className="p-4 bg-yellow-500/10 border-yellow-500/30">
+          <div className="flex items-center gap-3 text-yellow-600">
+            <AlertCircle className="w-5 h-5" />
+            <p className="text-sm">{partialError}</p>
+          </div>
+        </Card>
+      )}
+
       {/* Top hero */}
       <Card
         className={`p-6 sm:p-8 bg-gradient-to-r ${heroGradient}`}
@@ -247,6 +346,7 @@ export function Dashboard() {
           </div>
         </div>
       </Card>
+
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -324,23 +424,6 @@ export function Dashboard() {
             </div>
           </div>
         </Card>
-
-        {stats?.ai && (
-          <Card className="p-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">AI detections</p>
-                <p className="text-3xl font-bold mt-1">{stats.ai.total}</p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {stats.ai.threats} flagged · {stats.ai.critical} critical · {stats.ai.high} high
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Brain className="w-5 h-5 text-primary" />
-              </div>
-            </div>
-          </Card>
-        )}
       </div>
 
       {/* Recent alerts - Expandable */}
@@ -439,7 +522,7 @@ export function Dashboard() {
             </div>
             <div className="p-4 border-t border-border">
               <Button variant="outline" size="sm" className="w-full text-white" asChild>
-                <Link to="/dashboard/ai-detections">Run Security Scan</Link>
+                <Link to="/dashboard/threats">View Threats</Link>
               </Button>
             </div>
           </Card>
@@ -454,9 +537,6 @@ export function Dashboard() {
             <p className="text-sm text-muted-foreground">Single-click actions for busy owners</p>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <Button size="sm" className="text-white" asChild>
-              <Link to="/dashboard/ai-detections">Scan Now</Link>
-            </Button>
             <Button variant="outline" size="sm" className="text-white" asChild>
               <Link to="/dashboard/email">Run Phishing Test</Link>
             </Button>
