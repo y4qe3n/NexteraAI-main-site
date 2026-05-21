@@ -160,7 +160,7 @@ export default function Hero() {
               <div className="col-span-12 md:col-span-9 lg:col-span-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 sm:gap-5">
                 <StatCard title="Threats blocked" value="1,284" sub="+18% this week" tone="violet" />
                 <StatCard title="Devices online" value="47 / 48" sub="1 agent reconnecting" tone="emerald" />
-                <StatCard title="POPIA score" value="94%" sub="Above target" tone="amber" />
+                <StatCard title="POPIA score" value="94%" sub="Above target" tone="amber" className="hidden sm:block" />
 
                 <div className="hero-dash-row col-span-1 sm:col-span-2 lg:col-span-4 rounded-xl border border-[rgba(224,212,255,0.08)] bg-[#120f18] p-5 sm:p-6">
                   <div className="flex items-center justify-between mb-3">
@@ -170,7 +170,7 @@ export default function Hero() {
                   <FakeChart />
                 </div>
 
-                <div className="hero-dash-row col-span-1 sm:col-span-2 lg:col-span-2 rounded-xl border border-[rgba(224,212,255,0.08)] bg-[#120f18] p-5 sm:p-6">
+                <div className="hidden sm:block hero-dash-row col-span-1 sm:col-span-2 lg:col-span-2 rounded-xl border border-[rgba(224,212,255,0.08)] bg-[#120f18] p-5 sm:p-6">
                   <p className="text-[12.5px] text-[#A89CC8] mb-3">Recent Events</p>
                   <ul className="space-y-2.5">
                     {[
