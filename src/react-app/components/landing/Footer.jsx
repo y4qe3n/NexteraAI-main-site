@@ -62,17 +62,25 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="mt-14 pt-6 border-t border-[rgba(224,212,255,0.08)] flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[12.5px] text-[#8778AD]">
-            © {new Date().getFullYear()} NexteraAI. All rights reserved.
-          </p>
-          <div className="flex items-center gap-5 text-[12.5px] text-[#8778AD]">
-            <span className="inline-flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              All systems operational
-            </span>
-            <a href="#" className="hover:text-white">Status</a>
-            <a href="#" className="hover:text-white">Security</a>
+        <div className="mt-14 pt-6 border-t border-[rgba(224,212,255,0.08)] flex flex-col gap-6">
+          <div className="text-center md:text-left">
+            <p className="text-[12.5px] text-[#8778AD] font-semibold mb-3">NexteraAI (Pty) Ltd</p>
+            <p className="text-[11.5px] text-[#6E6389] mb-1">Registered Information Regulator (IR) Registration: [Registration Number]</p>
+            <p className="text-[11.5px] text-[#6E6389] mb-1">Companies and Intellectual Property Commission (CIPC) Registration: [Registration Number]</p>
+            <p className="text-[11.5px] text-[#6E6389]">South African Registered Company · POPIA Compliant</p>
+          </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-[12.5px] text-[#8778AD]">
+              © {new Date().getFullYear()} NexteraAI. All rights reserved.
+            </p>
+            <div className="flex items-center gap-5 text-[12.5px] text-[#8778AD]">
+              <span className="inline-flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                All systems operational
+              </span>
+              <a href="#" className="hover:text-white">Status</a>
+              <a href="#" className="hover:text-white">Security</a>
+            </div>
           </div>
         </div>
       </div>
