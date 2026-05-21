@@ -133,9 +133,9 @@ export default function Hero() {
               </div>
             </div>
 
-            <div className="grid grid-cols-12 gap-4 p-4 sm:p-6">
-              {/* sidebar */}
-              <aside className="col-span-12 md:col-span-3 lg:col-span-2 space-y-1">
+            <div className="grid grid-cols-12 gap-3 sm:gap-4 p-3 sm:p-4 md:p-6">
+              {/* sidebar - hidden on mobile for space */}
+              <aside className="hidden md:block col-span-12 md:col-span-3 lg:col-span-2 space-y-1">
                 {[
                   { icon: Activity, label: "Overview", active: true },
                   { icon: Radar, label: "Threat Radar" },
@@ -157,12 +157,12 @@ export default function Hero() {
               </aside>
 
               {/* main content */}
-              <div className="col-span-12 md:col-span-9 lg:col-span-10 grid grid-cols-6 gap-4">
+              <div className="col-span-12 md:col-span-9 lg:col-span-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
                 <StatCard title="Threats blocked" value="1,284" sub="+18% this week" tone="violet" />
                 <StatCard title="Devices online" value="47 / 48" sub="1 agent reconnecting" tone="emerald" />
                 <StatCard title="POPIA score" value="94%" sub="Above target" tone="amber" />
 
-                <div className="hero-dash-row col-span-6 md:col-span-4 rounded-xl border border-[rgba(224,212,255,0.08)] bg-[#120f18] p-4">
+                <div className="hero-dash-row col-span-1 sm:col-span-2 lg:col-span-4 rounded-xl border border-[rgba(224,212,255,0.08)] bg-[#120f18] p-4 sm:p-5">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-[12.5px] text-[#A89CC8]">Live Threat Radar</p>
                     <span className="text-[11px] text-emerald-400">Realtime</span>
@@ -170,7 +170,7 @@ export default function Hero() {
                   <FakeChart />
                 </div>
 
-                <div className="hero-dash-row col-span-6 md:col-span-2 rounded-xl border border-[rgba(224,212,255,0.08)] bg-[#120f18] p-4">
+                <div className="hero-dash-row col-span-1 sm:col-span-2 lg:col-span-2 rounded-xl border border-[rgba(224,212,255,0.08)] bg-[#120f18] p-4 sm:p-5">
                   <p className="text-[12.5px] text-[#A89CC8] mb-3">Recent Events</p>
                   <ul className="space-y-2.5">
                     {[
@@ -201,7 +201,7 @@ function StatCard({ title, value, sub, tone }) {
     amber: "from-[#1f1a0f] to-[#0c0a10]",
   };
   return (
-    <div className={`hero-dash-row col-span-6 sm:col-span-2 rounded-xl border border-[rgba(224,212,255,0.08)] bg-gradient-to-b ${toneMap[tone]} p-4`}>
+    <div className={`hero-dash-row col-span-1 rounded-xl border border-[rgba(224,212,255,0.08)] bg-gradient-to-b ${toneMap[tone]} p-4 sm:p-5`}>
       <p className="text-[11.5px] uppercase tracking-wider text-[#A89CC8]">{title}</p>
       <p className="mt-2 font-display text-2xl font-semibold text-white">{value}</p>
       <p className="mt-1 text-[11.5px] text-[#A89CC8]">{sub}</p>
@@ -213,7 +213,7 @@ function FakeChart() {
   // simple animated path
   const bars = Array.from({ length: 24 }, (_, i) => 20 + ((i * 13) % 70));
   return (
-    <div className="h-24 flex items-end gap-1.5">
+    <div className="h-20 sm:h-24 flex items-end gap-1 sm:gap-1.5">
       {bars.map((h, i) => (
         <div
           key={i}

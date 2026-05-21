@@ -568,16 +568,8 @@ section {
   }
   
   /* Hero dashboard adjustments */
-  .hero-dash .grid-cols-12 {
-    grid-template-columns: 1fr !important;
-  }
-  
   .hero-dash aside {
     display: none;
-  }
-  
-  .hero-dash .col-span-6 {
-    grid-column: span 1 !important;
   }
   
   /* Attack map adjustments */
