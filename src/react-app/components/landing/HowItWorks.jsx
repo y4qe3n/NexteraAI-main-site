@@ -27,35 +27,58 @@ export default function HowItWorks() {
   const rootRef = useRef(null);
 
   useEffect(() => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+
     const ctx = gsap.context(() => {
-      gsap.from(".hiw-head > *", {
-        y: 30, opacity: 0, stagger: 0.1, duration: 0.8, ease: "power3.out",
-        scrollTrigger: { trigger: rootRef.current, start: "top 80%" },
+      const mm = gsap.matchMedia();
+
+      // Mobile: reduced motion
+      mm.add("(max-width: 767px)", () => {
+        gsap.from(".hiw-head > *", {
+          y: 20, opacity: 0, stagger: 0.08, duration: 0.6, ease: "power2.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 85%" },
+        });
+        gsap.from(".hiw-step", {
+          y: 25, opacity: 0, scale: 0.98, duration: 0.6, stagger: 0.08,
+          ease: "power2.out",
+          scrollTrigger: { trigger: ".hiw-grid", start: "top 85%" },
+        });
       });
-      gsap.from(".hiw-step", {
-        y: 40, opacity: 0, scale: 0.96, duration: 0.8, stagger: 0.15,
-        ease: "back.out(1.4)",
-        scrollTrigger: { trigger: ".hiw-grid", start: "top 85%" },
+
+      // Desktop: full animations with connecting line
+      mm.add("(min-width: 768px)", () => {
+        gsap.from(".hiw-head > *", {
+          y: 30, opacity: 0, stagger: 0.1, duration: 0.8, ease: "power3.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 80%" },
+        });
+        gsap.from(".hiw-step", {
+          y: 40, opacity: 0, scale: 0.96, duration: 0.8, stagger: 0.15,
+          ease: "back.out(1.4)",
+          scrollTrigger: { trigger: ".hiw-grid", start: "top 85%" },
+        });
+        // Animate the connecting line
+        gsap.fromTo(".hiw-line",
+          { scaleX: 0 },
+          {
+            scaleX: 1, duration: 1.4, ease: "power2.inOut",
+            transformOrigin: "left center",
+            scrollTrigger: { trigger: ".hiw-grid", start: "top 80%" },
+          }
+        );
       });
-      // Animate the connecting line
-      gsap.fromTo(".hiw-line",
-        { scaleX: 0 },
-        {
-          scaleX: 1, duration: 1.4, ease: "power2.inOut",
-          transformOrigin: "left center",
-          scrollTrigger: { trigger: ".hiw-grid", start: "top 80%" },
-        }
-      );
+
+      return () => mm.revert();
     }, rootRef);
     return () => ctx.revert();
   }, []);
 
   return (
-    <section ref={rootRef} data-testid="howitworks-section" className="relative py-24 md:py-32 overflow-hidden bg-[#0A0A0A]">
+    <section ref={rootRef} data-testid="howitworks-section" className="relative nx-section overflow-hidden bg-[#0A0A0A]">
       <div className="absolute inset-0 nx-radial opacity-60" />
       <div className="absolute inset-0 nx-grid-bg [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_75%)]" />
 
-      <div className="relative max-w-7xl mx-auto px-5">
+      <div className="relative nx-container">
         <div className="hiw-head text-center max-w-2xl mx-auto">
           <span className="nx-badge mx-auto">How it works</span>
           <h2 className="font-display mt-5 text-white text-4xl md:text-5xl font-semibold leading-[1.05]">
@@ -68,13 +91,13 @@ export default function HowItWorks() {
 
         <div className="hiw-grid relative mt-16">
           {/* Connecting line (desktop only) */}
-          <div className="hidden lg:block absolute top-16 left-[10%] right-[10%] h-px">
+          <div className="hidden md:block absolute top-16 left-[10%] right-[10%] h-px">
             <div className="hiw-line h-full w-full" style={{
               background: "linear-gradient(90deg, transparent 0%, #624CAB 20%, #9F86E8 50%, #624CAB 80%, transparent 100%)",
             }} />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-8 relative">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 lg:gap-8 relative">
             {STEPS.map((s, i) => (
               <div
                 key={i}
@@ -86,7 +109,7 @@ export default function HowItWorks() {
                     <s.icon className="w-6 h-6 text-white" />
                   </div>
                 </div>
-                <p className="mt-5 font-display text-[56px] leading-none font-semibold text-transparent" style={{
+                <p className="mt-5 font-display text-[36px] md:text-[48px] lg:text-[56px] leading-none font-semibold text-transparent" style={{
                   WebkitTextStroke: "1px rgba(159,134,232,0.25)",
                 }}>
                   {s.n}

@@ -134,6 +134,81 @@
   --nx-border-strong: rgba(224, 212, 255, 0.16);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ========================================
+   RESPONSIVE SECTION PADDING
+   ======================================== */
+
+.nx-section {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
+@media (min-width: 480px) {
+  .nx-section {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .nx-section {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .nx-section {
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+  }
+}
+
+/* ========================================
+   RESPONSIVE CONTAINER
+   ======================================== */
+
+.nx-container {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+@media (min-width: 480px) {
+  .nx-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .nx-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .nx-container {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
 html,
 body {
   background: var(--nx-bg);
@@ -288,6 +363,13 @@ h6,
 .nx-marquee-track {
   animation: nx-marquee 35s linear infinite;
   will-change: transform;
+}
+
+/* Mobile: slower marquee for readability */
+@media (max-width: 767px) {
+  .nx-marquee-track {
+    animation-duration: 50s;
+  }
 }
 
 @keyframes nx-float {

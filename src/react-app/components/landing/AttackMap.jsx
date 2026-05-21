@@ -97,27 +97,61 @@ export default function AttackMap() {
   const [dots] = useState(() => generateDots());
 
   useEffect(() => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+
     const ctx = gsap.context(() => {
-      gsap.from(".am-head > *", {
-        y: 30, opacity: 0, stagger: 0.1, duration: 0.8, ease: "power3.out",
-        scrollTrigger: { trigger: rootRef.current, start: "top 80%" },
-      });
-      gsap.from(".am-stage", {
-        y: 40, opacity: 0, duration: 1, ease: "power3.out",
-        scrollTrigger: { trigger: rootRef.current, start: "top 75%" },
+      const mm = gsap.matchMedia();
+
+      // Mobile: skip attack lines (fade container only), reduced motion
+      mm.add("(max-width: 767px)", () => {
+        gsap.from(".am-head > *", {
+          y: 20, opacity: 0, stagger: 0.08, duration: 0.6, ease: "power2.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 85%" },
+        });
+        // Just fade in the map container, skip the attack line animation
+        gsap.fromTo(".am-stage",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, scrollTrigger: { trigger: rootRef.current, start: "top 85%" } }
+        );
+        // Continent dots with reduced stagger
+        gsap.fromTo(
+          ".am-dot",
+          { opacity: 0, scale: 0 },
+          {
+            opacity: 0.55, scale: 1, duration: 0.5, ease: "power2.out",
+            stagger: { each: 0.003, from: "random" },
+            transformOrigin: "center center",
+            scrollTrigger: { trigger: rootRef.current, start: "top 80%" },
+          }
+        );
       });
 
-      // fade-in continent dots once section is in view
-      gsap.fromTo(
-        ".am-dot",
-        { opacity: 0, scale: 0 },
-        {
-          opacity: 0.55, scale: 1, duration: 0.6, ease: "power2.out",
-          stagger: { each: 0.002, from: "random" },
-          transformOrigin: "center center",
-          scrollTrigger: { trigger: rootRef.current, start: "top 70%" },
-        }
-      );
+      // Desktop: full attack line animations with scaled coordinates
+      mm.add("(min-width: 768px)", () => {
+        gsap.from(".am-head > *", {
+          y: 30, opacity: 0, stagger: 0.1, duration: 0.8, ease: "power3.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 80%" },
+        });
+        gsap.from(".am-stage", {
+          y: 40, opacity: 0, duration: 1, ease: "power3.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 75%" },
+        });
+
+        // fade-in continent dots once section is in view
+        gsap.fromTo(
+          ".am-dot",
+          { opacity: 0, scale: 0 },
+          {
+            opacity: 0.55, scale: 1, duration: 0.6, ease: "power2.out",
+            stagger: { each: 0.002, from: "random" },
+            transformOrigin: "center center",
+            scrollTrigger: { trigger: rootRef.current, start: "top 70%" },
+          }
+        );
+      });
+
+      return () => mm.revert();
     }, rootRef);
     return () => ctx.revert();
   }, []);
@@ -197,12 +231,12 @@ export default function AttackMap() {
   }, []);
 
   return (
-    <section id="final-cta" ref={rootRef} data-testid="attack-map-section" className="relative py-24 md:py-32 overflow-hidden bg-[#0A0A0A]">
+    <section id="final-cta" ref={rootRef} data-testid="attack-map-section" className="relative nx-section overflow-hidden bg-[#0A0A0A]">
       <div className="absolute inset-0 pointer-events-none" style={{
         background: "radial-gradient(900px 500px at 50% 0%, rgba(98,76,171,0.18), transparent 60%), radial-gradient(700px 400px at 80% 80%, rgba(255,59,92,0.10), transparent 60%)",
       }} />
 
-      <div className="relative max-w-7xl mx-auto px-5">
+      <div className="relative nx-container">
         <div className="am-head text-center max-w-3xl mx-auto">
           <span className="nx-badge mx-auto !bg-[rgba(255,59,92,0.1)] !border-[rgba(255,59,92,0.4)] !text-[#ffb3c1]">
             <RadarIcon className="w-3.5 h-3.5" /> Live Global Threat Map

@@ -57,27 +57,50 @@ export default function Pricing() {
   const rootRef = useRef(null);
 
   useEffect(() => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+
     const ctx = gsap.context(() => {
-      gsap.from(".pricing-head > *", {
-        y: 30, opacity: 0, stagger: 0.1, duration: 0.8, ease: "power3.out",
-        scrollTrigger: { trigger: rootRef.current, start: "top 95%" },
+      const mm = gsap.matchMedia();
+
+      // Mobile: no stagger for single-column cards
+      mm.add("(max-width: 767px)", () => {
+        gsap.from(".pricing-head > *", {
+          y: 20, opacity: 0, stagger: 0.08, duration: 0.6, ease: "power2.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 95%" },
+        });
+        gsap.from(".pricing-card", {
+          y: 15, duration: 0.5, stagger: 0, ease: "power2.out",
+          clearProps: "transform",
+          scrollTrigger: { trigger: ".pricing-grid", start: "top 95%", toggleActions: "play none none none" },
+        });
       });
-      // Pricing cards render immediately (no initial hidden state) to guarantee visibility
-      // regardless of ScrollTrigger / font-loading timing. Subtle lift only.
-      gsap.from(".pricing-card", {
-        y: 24, duration: 0.7, stagger: 0.1, ease: "power3.out",
-        clearProps: "transform",
-        scrollTrigger: { trigger: ".pricing-grid", start: "top 95%", toggleActions: "play none none none" },
+
+      // Desktop: full animations with stagger
+      mm.add("(min-width: 768px)", () => {
+        gsap.from(".pricing-head > *", {
+          y: 30, opacity: 0, stagger: 0.1, duration: 0.8, ease: "power3.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 95%" },
+        });
+        // Pricing cards render immediately (no initial hidden state) to guarantee visibility
+        // regardless of ScrollTrigger / font-loading timing. Subtle lift only.
+        gsap.from(".pricing-card", {
+          y: 24, duration: 0.7, stagger: 0.1, ease: "power3.out",
+          clearProps: "transform",
+          scrollTrigger: { trigger: ".pricing-grid", start: "top 95%", toggleActions: "play none none none" },
+        });
       });
+
+      return () => mm.revert();
     }, rootRef);
     return () => ctx.revert();
   }, []);
 
   return (
-    <section id="pricing" ref={rootRef} data-testid="pricing-section" className="relative py-24 md:py-32">
+    <section id="pricing" ref={rootRef} data-testid="pricing-section" className="relative nx-section">
       <div className="absolute inset-0 bg-[radial-gradient(900px_500px_at_50%_0%,rgba(98,76,171,0.18),transparent_60%)]" />
 
-      <div className="relative max-w-7xl mx-auto px-5">
+      <div className="relative nx-container">
         <div className="pricing-head text-center max-w-3xl mx-auto">
           <span className="nx-badge mx-auto">Pricing</span>
           <h2 className="font-display mt-5 text-white text-4xl md:text-5xl font-semibold leading-[1.05]">
@@ -89,7 +112,7 @@ export default function Pricing() {
           </p>
         </div>
 
-        <div className="pricing-grid mt-14 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="pricing-grid mt-14 grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-3 gap-5 md:gap-6">
           {TIERS.map((t) => (
             <div
               key={t.name}
@@ -134,7 +157,7 @@ export default function Pricing() {
 
               <ul className="mt-6 space-y-3">
                 {t.features.map((f, i) => (
-                  <li key={i} className="flex items-start gap-3 text-[13.5px] text-[#D6CAF0]">
+                  <li key={i} className="flex items-start gap-3 text-xs xs:text-[13px] md:text-[13.5px] text-[#D6CAF0]">
                     <Check className="w-4 h-4 mt-0.5 text-[#9F86E8] shrink-0" />
                     <span>{f}</span>
                   </li>

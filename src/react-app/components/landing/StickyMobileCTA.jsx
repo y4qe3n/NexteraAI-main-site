@@ -16,6 +16,7 @@ export default function StickyMobileCTA() {
       className={`md:hidden fixed bottom-3 left-3 right-3 z-40 transition-all duration-300 ${
         visible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none"
       }`}
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}
     >
       <a
         href="#pricing"

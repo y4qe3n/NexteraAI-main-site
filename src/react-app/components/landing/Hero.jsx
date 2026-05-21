@@ -8,30 +8,59 @@ export default function Hero() {
   const rootRef = useRef(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" }, delay: 0.15 });
-      tl.from(".hero-badge", { y: 18, opacity: 0, duration: 0.7 })
-        .from(".hero-title-line", { y: 40, opacity: 0, duration: 0.9, stagger: 0.08 }, "-=0.4")
-        .from(".hero-sub", { y: 20, opacity: 0, duration: 0.7 }, "-=0.5")
-        .from(".hero-cta > *", { y: 16, opacity: 0, duration: 0.6, stagger: 0.08 }, "-=0.4")
-        .from(".hero-stats > *", { y: 12, opacity: 0, duration: 0.6, stagger: 0.08 }, "-=0.4")
-        .from(".hero-dash", { y: 60, opacity: 0, duration: 1, ease: "power4.out" }, "-=0.8")
-        .from(".hero-dash-row", { y: 10, opacity: 0, duration: 0.5, stagger: 0.06 }, "-=0.6");
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
 
-      // Parallax on the floating dashboard
-      gsap.to(".hero-dash", {
-        y: -30,
-        scrollTrigger: {
-          trigger: rootRef.current,
-          start: "top top",
-          end: "bottom top",
-          scrub: 1,
-        },
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia();
+
+      // Mobile animations - reduced motion, fade only
+      mm.add("(max-width: 479px)", () => {
+        gsap.fromTo('.hero-badge, .hero-title-line, .hero-sub, .hero-cta > *, .hero-stats > *',
+          { opacity: 0 },
+          { opacity: 1, duration: 0.5, stagger: 0.1, ease: 'power1.out' }
+        );
+        gsap.fromTo('.hero-dash',
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, delay: 0.3 }
+        );
+        gsap.fromTo('.hero-dash-row',
+          { opacity: 0 },
+          { opacity: 1, duration: 0.4, stagger: 0.05 }
+        );
+        // Orbs drift on mobile (slower)
+        gsap.to(".hero-orb-a", { x: 15, y: -10, duration: 15, yoyo: true, repeat: -1, ease: "sine.inOut" });
+        gsap.to(".hero-orb-b", { x: -12, y: 8, duration: 18, yoyo: true, repeat: -1, ease: "sine.inOut" });
       });
 
-      // Orbs slow drift
-      gsap.to(".hero-orb-a", { x: 30, y: -20, duration: 10, yoyo: true, repeat: -1, ease: "sine.inOut" });
-      gsap.to(".hero-orb-b", { x: -25, y: 15, duration: 12, yoyo: true, repeat: -1, ease: "sine.inOut" });
+      // Desktop animations - full motion
+      mm.add("(min-width: 480px)", () => {
+        const tl = gsap.timeline({ defaults: { ease: "power3.out" }, delay: 0.15 });
+        tl.from(".hero-badge", { y: 18, opacity: 0, duration: 0.7 })
+          .from(".hero-title-line", { y: 40, opacity: 0, duration: 0.9, stagger: 0.08 }, "-=0.4")
+          .from(".hero-sub", { y: 20, opacity: 0, duration: 0.7 }, "-=0.5")
+          .from(".hero-cta > *", { y: 16, opacity: 0, duration: 0.6, stagger: 0.08 }, "-=0.4")
+          .from(".hero-stats > *", { y: 12, opacity: 0, duration: 0.6, stagger: 0.08 }, "-=0.4")
+          .from(".hero-dash", { y: 60, opacity: 0, duration: 1, ease: "power4.out" }, "-=0.8")
+          .from(".hero-dash-row", { y: 10, opacity: 0, duration: 0.5, stagger: 0.06 }, "-=0.6");
+
+        // Parallax on the floating dashboard
+        gsap.to(".hero-dash", {
+          y: -30,
+          scrollTrigger: {
+            trigger: rootRef.current,
+            start: "top top",
+            end: "bottom top",
+            scrub: 1,
+          },
+        });
+
+        // Orbs slow drift
+        gsap.to(".hero-orb-a", { x: 30, y: -20, duration: 10, yoyo: true, repeat: -1, ease: "sine.inOut" });
+        gsap.to(".hero-orb-b", { x: -25, y: 15, duration: 12, yoyo: true, repeat: -1, ease: "sine.inOut" });
+      });
+
+      return () => mm.revert();
     }, rootRef);
     return () => ctx.revert();
   }, []);
@@ -46,41 +75,41 @@ export default function Hero() {
       {/* Background layers */}
       <div className="absolute inset-0 nx-radial" />
       <div className="absolute inset-0 nx-grid-bg [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
-      <div className="hero-orb-a absolute -top-10 left-[6%] w-[340px] h-[340px] nx-glow-ring" />
-      <div className="hero-orb-b absolute top-[28%] right-[4%] w-[420px] h-[420px] nx-glow-ring opacity-80" />
+      <div className="hero-orb-a absolute -top-10 left-[6%] w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] lg:w-[340px] lg:h-[340px] nx-glow-ring" />
+      <div className="hero-orb-b absolute top-[28%] right-[4%] w-[240px] h-[240px] sm:w-[320px] sm:h-[320px] lg:w-[420px] lg:h-[420px] nx-glow-ring opacity-80" />
 
-      <div className="relative max-w-7xl mx-auto px-5">
-        <div className="hero-badge nx-badge mx-auto w-max mb-7">
+      <div className="relative nx-container">
+        <div className="hero-badge nx-badge mx-auto w-fit max-w-full mb-7">
           <Sparkles className="w-3.5 h-3.5" />
           <span>Built for South African SMEs · POPIA Ready</span>
         </div>
 
-        <h1 className="font-display text-center text-white font-semibold leading-[1.02] text-[44px] sm:text-6xl lg:text-[82px] max-w-5xl mx-auto">
+        <h1 className="font-display text-center text-white font-semibold leading-[1.02] text-[32px] xs:text-[40px] sm:text-5xl md:text-6xl lg:text-[82px] max-w-5xl mx-auto">
           <span className="hero-title-line block">One Platform.</span>
           <span className="hero-title-line block nx-gradient-text">Total Control.</span>
           <span className="hero-title-line block">Complete Security.</span>
         </h1>
 
-        <p className="hero-sub mt-7 max-w-2xl mx-auto text-center text-[#A89CC8] text-base sm:text-lg leading-relaxed">
+        <p className="hero-sub mt-7 max-w-2xl mx-auto text-center text-[#A89CC8] text-sm xs:text-base md:text-[17px] lg:text-lg leading-relaxed">
           NexteraAI is the Online Business Operations Center with built-in enterprise-grade
           cybersecurity. Run your entire business, protect it with AI, and stay POPIA compliant —
           without managing a single extra tool.
         </p>
 
         <div className="hero-cta mt-9 flex flex-row items-center justify-center gap-3">
-          <a href="#pricing" data-testid="hero-cta-primary" className="nx-btn-primary nx-shine" style={{ height: '48px', display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
+          <a href="#pricing" data-testid="hero-cta-primary" className="nx-btn-primary nx-shine !py-3 xs:!py-3.5">
             <ShieldCheck className="w-4 h-4 flex-shrink-0" />
             <span className="mx-1">Get Started</span>
             <ArrowRight className="w-4 h-4 flex-shrink-0" />
           </a>
-          <a href="#solution" data-testid="hero-cta-secondary" className="nx-btn-ghost" style={{ height: '48px', display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
+          <a href="#solution" data-testid="hero-cta-secondary" className="nx-btn-ghost !py-3 xs:!py-3.5">
             <Play className="w-4 h-4 flex-shrink-0" />
             <span className="mx-1">See it in action</span>
             <span className="w-4 h-4 flex-shrink-0" aria-hidden="true"></span>
           </a>
         </div>
 
-        <div className="hero-stats mt-10 flex flex-wrap justify-center gap-x-10 gap-y-3 text-[13px] text-[#A89CC8]">
+        <div className="hero-stats mt-10 grid grid-cols-2 xs:grid-cols-3 md:grid-cols-3 gap-x-4 gap-y-3 text-[13px] text-[#A89CC8]">
           <span className="inline-flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />99.98% uptime SLA</span>
           <span className="inline-flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#9F86E8]" />POPIA & ISO-aligned</span>
           <span className="inline-flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-amber-400" />24/7 AI threat response</span>

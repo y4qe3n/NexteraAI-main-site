@@ -35,8 +35,8 @@ export default function Testimonials() {
   }, []);
 
   return (
-    <section ref={rootRef} data-testid="testimonials-section" className="relative py-24 md:py-32">
-      <div className="max-w-7xl mx-auto px-5">
+    <section ref={rootRef} data-testid="testimonials-section" className="relative nx-section">
+      <div className="nx-container">
         <div className="test-head text-center max-w-2xl mx-auto">
           <span className="nx-badge mx-auto">Trusted by SMEs across SA</span>
           <h2 className="font-display mt-5 text-white text-4xl md:text-5xl font-semibold leading-[1.05]">
@@ -44,7 +44,7 @@ export default function Testimonials() {
           </h2>
         </div>
 
-        <div className="test-grid mt-14 grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="test-grid mt-14 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
           {REVIEWS.map((review, i) => (
             <figure
               key={i}

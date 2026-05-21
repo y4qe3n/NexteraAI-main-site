@@ -22,8 +22,8 @@ const COLS = [
 export default function Footer() {
   return (
     <footer data-testid="footer" className="relative pt-20 pb-10 border-t border-[rgba(224,212,255,0.08)]">
-      <div className="max-w-7xl mx-auto px-5">
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-10">
+      <div className="nx-container">
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-6 gap-8 md:gap-10">
           <div className="col-span-2">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-br from-[#624CAB] to-[#2d2250]">
@@ -51,7 +51,7 @@ export default function Footer() {
                     <a
                       href="#"
                       data-testid={`footer-link-${c.title.toLowerCase()}-${l.toLowerCase().replace(/\s+/g, "-")}`}
-                      className="text-[13.5px] text-[#C2B6E0] hover:text-white transition"
+                      className="text-xs xs:text-[13px] md:text-[13.5px] text-[#C2B6E0] hover:text-white transition"
                     >
                       {l}
                     </a>

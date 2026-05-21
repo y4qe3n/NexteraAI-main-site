@@ -6,19 +6,45 @@ export default function Solution() {
   const rootRef = useRef(null);
 
   useEffect(() => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+
     const ctx = gsap.context(() => {
-      gsap.from(".sol-left > *", {
-        x: -40, opacity: 0, duration: 0.9, stagger: 0.1, ease: "power3.out",
-        scrollTrigger: { trigger: rootRef.current, start: "top 80%" },
+      const mm = gsap.matchMedia();
+
+      // Mobile: reduced motion, fade only
+      mm.add("(max-width: 767px)", () => {
+        gsap.from(".sol-left > *", {
+          opacity: 0, duration: 0.5, stagger: 0.08, ease: "power2.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 85%" },
+        });
+        gsap.from(".sol-right", {
+          opacity: 0, duration: 0.6, ease: "power2.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 85%" },
+        });
+        gsap.from(".sol-bullet", {
+          opacity: 0, duration: 0.4, stagger: 0.06, ease: "power2.out",
+          scrollTrigger: { trigger: ".sol-bullets", start: "top 90%" },
+        });
       });
-      gsap.from(".sol-right", {
-        x: 40, opacity: 0, duration: 1, ease: "power3.out",
-        scrollTrigger: { trigger: rootRef.current, start: "top 80%" },
+
+      // Desktop: full animations with x movement
+      mm.add("(min-width: 768px)", () => {
+        gsap.from(".sol-left > *", {
+          x: -40, opacity: 0, duration: 0.9, stagger: 0.1, ease: "power3.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 80%" },
+        });
+        gsap.from(".sol-right", {
+          x: 40, opacity: 0, duration: 1, ease: "power3.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 80%" },
+        });
+        gsap.from(".sol-bullet", {
+          y: 20, opacity: 0, duration: 0.6, stagger: 0.08, ease: "power3.out",
+          scrollTrigger: { trigger: ".sol-bullets", start: "top 90%" },
+        });
       });
-      gsap.from(".sol-bullet", {
-        y: 20, opacity: 0, duration: 0.6, stagger: 0.08, ease: "power3.out",
-        scrollTrigger: { trigger: ".sol-bullets", start: "top 90%" },
-      });
+
+      return () => mm.revert();
     }, rootRef);
     return () => ctx.revert();
   }, []);
@@ -35,13 +61,13 @@ export default function Solution() {
       id="solution"
       ref={rootRef}
       data-testid="solution-section"
-      className="relative py-24 md:py-32 overflow-hidden bg-[#0A0A0A]"
+      className="relative nx-section overflow-hidden bg-[#0A0A0A]"
     >
       <div className="absolute inset-0 nx-radial opacity-80" />
       <div className="absolute inset-0 nx-grid-bg [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_75%)]" />
 
-      <div className="relative max-w-7xl mx-auto px-5 grid lg:grid-cols-2 gap-14 items-center">
-        <div className="sol-left">
+      <div className="relative nx-container grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10 lg:gap-14 items-center">
+        <div className="sol-left max-w-prose lg:max-w-none">
           <span className="nx-badge">The Solution</span>
           <h2 className="font-display mt-5 text-white text-4xl md:text-5xl font-semibold leading-[1.05]">
             Your All-in-One <span className="nx-gradient-text">Operations Center</span>
@@ -56,7 +82,7 @@ export default function Solution() {
             {bullets.map((b, i) => (
               <li key={i} className="sol-bullet flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 mt-0.5 text-[#9F86E8] shrink-0" />
-                <span className="text-[#D6CAF0] text-[15px] font-medium">{b}</span>
+                <span className="text-[#D6CAF0] text-sm md:text-[15px] font-medium">{b}</span>
               </li>
             ))}
           </ul>

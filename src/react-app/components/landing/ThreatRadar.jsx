@@ -6,65 +6,104 @@ export default function ThreatRadar() {
   const rootRef = useRef(null);
 
   useEffect(() => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+
     const ctx = gsap.context(() => {
-      gsap.from(".tr-head > *", {
-        y: 30, opacity: 0, stagger: 0.1, duration: 0.8, ease: "power3.out",
-        scrollTrigger: { trigger: rootRef.current, start: "top 80%" },
-      });
-      gsap.from(".tr-stat", {
-        y: 20, opacity: 0, duration: 0.6, stagger: 0.1, ease: "power3.out",
-        scrollTrigger: { trigger: ".tr-stats", start: "top 85%" },
-      });
+      const mm = gsap.matchMedia();
 
-      // Continuous radar sweep
-      gsap.to(".tr-sweep", {
-        rotate: 360, duration: 6, repeat: -1, ease: "none",
-        transformOrigin: "50% 100%",
-      });
-
-      // Animated counters (threats blocked + devices monitored)
-      const counters = [
-        { el: ".tr-count-threats", to: 12842 },
-        { el: ".tr-count-devices", to: 48 },
-        { el: ".tr-count-uptime", to: 99.98, decimals: 2 },
-      ];
-      counters.forEach(({ el, to, decimals = 0 }) => {
-        const obj = { v: 0 };
-        gsap.to(obj, {
-          v: to, duration: 2, ease: "power2.out",
-          onUpdate: () => {
-            const node = rootRef.current?.querySelector(el);
-            if (node) node.textContent = decimals
-              ? obj.v.toFixed(decimals)
-              : Math.floor(obj.v).toLocaleString();
-          },
+      // Mobile: radar spin on mount (no scroll trigger), reduced motion
+      mm.add("(max-width: 767px)", () => {
+        gsap.from(".tr-head > *", {
+          y: 20, opacity: 0, stagger: 0.08, duration: 0.6, ease: "power2.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 85%" },
+        });
+        gsap.from(".tr-stat", {
+          y: 15, opacity: 0, duration: 0.5, stagger: 0.08, ease: "power2.out",
           scrollTrigger: { trigger: ".tr-stats", start: "top 85%" },
+        });
+        // Radar spin on mount, not on scroll
+        gsap.to(".tr-sweep", {
+          rotate: 360, duration: 8, repeat: -1, ease: "none",
+          transformOrigin: "50% 100%",
+        });
+        // Slower blips on mobile
+        const blips = gsap.utils.toArray(".tr-blip");
+        blips.forEach((blip, i) => {
+          gsap.fromTo(blip,
+            { scale: 0, opacity: 0 },
+            {
+              scale: 1.2, opacity: 1, duration: 1.8, ease: "power2.out",
+              repeat: -1, repeatDelay: 3 + i * 0.8, delay: i * 0.6,
+              yoyo: true,
+            }
+          );
         });
       });
 
-      // Blips appear and fade
-      const blips = gsap.utils.toArray(".tr-blip");
-      blips.forEach((blip, i) => {
-        gsap.fromTo(blip,
-          { scale: 0, opacity: 0 },
-          {
-            scale: 1.6, opacity: 1, duration: 1.2, ease: "power2.out",
-            repeat: -1, repeatDelay: 2 + i * 0.6, delay: i * 0.5,
-            yoyo: true,
-          }
-        );
+      // Desktop: full animations with scroll trigger
+      mm.add("(min-width: 768px)", () => {
+        gsap.from(".tr-head > *", {
+          y: 30, opacity: 0, stagger: 0.1, duration: 0.8, ease: "power3.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 80%" },
+        });
+        gsap.from(".tr-stat", {
+          y: 20, opacity: 0, duration: 0.6, stagger: 0.1, ease: "power3.out",
+          scrollTrigger: { trigger: ".tr-stats", start: "top 85%" },
+        });
+
+        // Continuous radar sweep
+        gsap.to(".tr-sweep", {
+          rotate: 360, duration: 6, repeat: -1, ease: "none",
+          transformOrigin: "50% 100%",
+        });
+
+        // Animated counters (threats blocked + devices monitored)
+        const counters = [
+          { el: ".tr-count-threats", to: 12842 },
+          { el: ".tr-count-devices", to: 48 },
+          { el: ".tr-count-uptime", to: 99.98, decimals: 2 },
+        ];
+        counters.forEach(({ el, to, decimals = 0 }) => {
+          const obj = { v: 0 };
+          gsap.to(obj, {
+            v: to, duration: 2, ease: "power2.out",
+            onUpdate: () => {
+              const node = rootRef.current?.querySelector(el);
+              if (node) node.textContent = decimals
+                ? obj.v.toFixed(decimals)
+                : Math.floor(obj.v).toLocaleString();
+            },
+            scrollTrigger: { trigger: ".tr-stats", start: "top 85%" },
+          });
+        });
+
+        // Blips appear and fade
+        const blips = gsap.utils.toArray(".tr-blip");
+        blips.forEach((blip, i) => {
+          gsap.fromTo(blip,
+            { scale: 0, opacity: 0 },
+            {
+              scale: 1.6, opacity: 1, duration: 1.2, ease: "power2.out",
+              repeat: -1, repeatDelay: 2 + i * 0.6, delay: i * 0.5,
+              yoyo: true,
+            }
+          );
+        });
       });
+
+      return () => mm.revert();
     }, rootRef);
     return () => ctx.revert();
   }, []);
 
   return (
-    <section ref={rootRef} data-testid="threat-radar-section" className="relative py-24 md:py-32 overflow-hidden bg-[#0A0A0A]">
+    <section ref={rootRef} data-testid="threat-radar-section" className="relative nx-section overflow-hidden bg-[#0A0A0A]">
       <div className="absolute inset-0" style={{
         background: "radial-gradient(1000px 500px at 20% 50%, rgba(98,76,171,0.18), transparent 60%)",
       }} />
 
-      <div className="relative max-w-7xl mx-auto px-5 grid lg:grid-cols-2 gap-14 items-center">
+      <div className="relative nx-container grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
         {/* Left: Text + stats */}
         <div>
           <div className="tr-head">
@@ -99,8 +138,8 @@ export default function ThreatRadar() {
         </div>
 
         {/* Right: Radar visual */}
-        <div className="relative h-[480px] flex items-center justify-center">
-          <div className="relative w-[420px] h-[420px] max-w-full">
+        <div className="lg:order-last relative h-[280px] xs:h-[340px] sm:h-[400px] lg:h-[480px] flex items-center justify-center">
+          <div className="relative w-[240px] h-[240px] xs:w-[300px] xs:h-[300px] sm:w-[360px] sm:h-[360px] lg:w-[420px] lg:h-[420px] max-w-full">
             {/* Concentric rings */}
             {[0.35, 0.55, 0.78, 1].map((scale, i) => (
               <div key={i}

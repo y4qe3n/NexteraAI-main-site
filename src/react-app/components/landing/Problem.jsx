@@ -51,8 +51,8 @@ export default function Problem() {
   }, []);
 
   return (
-    <section ref={rootRef} data-testid="problem-section" className="relative py-24 md:py-32">
-      <div className="max-w-7xl mx-auto px-5">
+    <section ref={rootRef} data-testid="problem-section" className="relative nx-section">
+      <div className="nx-container">
         <div className="problem-head max-w-3xl">
           <span className="nx-badge">The Problem</span>
           <h2 className="font-display mt-5 text-white text-4xl md:text-5xl font-semibold leading-[1.05]">
@@ -65,12 +65,12 @@ export default function Problem() {
           </p>
         </div>
 
-        <div className="problem-grid mt-14 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="problem-grid mt-14 grid grid-cols-1 xs:grid-cols-2 gap-4 md:gap-5">
           {PAINS.map((p, i) => (
             <div
               key={i}
               data-testid={`problem-card-${i}`}
-              className="problem-card nx-card p-7 md:p-8 group"
+              className="problem-card nx-card p-5 xs:p-6 md:p-7 lg:p-8 group"
             >
               <div className="flex items-center gap-4">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br from-[#2a1f49] to-[#17122a] border border-[rgba(159,134,232,0.25)]">

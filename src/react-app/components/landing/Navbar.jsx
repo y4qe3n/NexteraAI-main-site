@@ -27,7 +27,7 @@ export default function Navbar() {
         scrolled ? "py-2" : "py-4"
       }`}
     >
-      <div className="mx-auto max-w-7xl px-5">
+      <div className="nx-container">
         <div
           className={`flex items-center justify-between rounded-full px-4 sm:px-5 py-2.5 transition-all duration-300 ${
             scrolled
@@ -74,33 +74,33 @@ export default function Navbar() {
           <button
             data-testid="nav-mobile-toggle"
             onClick={() => setOpen((v) => !v)}
-            className="md:hidden p-2 rounded-lg text-[#C2B6E0] hover:text-white"
+            className="md:hidden flex flex-col gap-1 p-2"
             aria-label="Toggle menu"
           >
-            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${open ? 'rotate-45 translate-y-1.5' : ''}`} />
+            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${open ? 'opacity-0' : ''}`} />
+            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${open ? '-rotate-45 -translate-y-1.5' : ''}`} />
           </button>
         </div>
 
         {open && (
-          <div data-testid="nav-mobile-panel" className="md:hidden mt-2 rounded-2xl nx-glass p-4 flex flex-col gap-1">
+          <div data-testid="nav-mobile-panel" className="md:hidden absolute top-full left-3 right-3 mt-2 rounded-2xl border border-[rgba(159,134,232,0.2)] bg-[#0d0b14]/95 backdrop-blur-xl p-4 flex flex-col gap-1">
             {NAV.map((n) => (
               <a
                 key={n.href}
                 href={n.href}
                 onClick={() => setOpen(false)}
-                className="text-sm text-[#C2B6E0] hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/5"
+                className="px-4 py-3 text-sm text-[#c4b5fd] hover:text-white rounded-xl hover:bg-[rgba(98,76,171,0.15)] transition-colors"
               >
                 {n.label}
               </a>
             ))}
-            <a
-              href="#pricing"
-              onClick={() => setOpen(false)}
-              data-testid="nav-mobile-cta"
-              className="nx-btn-primary mt-2 justify-center text-sm"
-            >
-              <ShieldCheck className="w-4 h-4" /> Get Started
-            </a>
+            <div className="border-t border-[rgba(159,134,232,0.15)] mt-2 pt-2">
+              <a href="/login" className="px-4 py-3 text-sm text-[#c4b5fd] hover:text-white rounded-xl hover:bg-[rgba(98,76,171,0.15)] transition-colors">Sign in</a>
+              <a href="#pricing" onClick={() => setOpen(false)} data-testid="nav-mobile-cta" className="nx-btn-primary w-full justify-center text-sm py-3 mt-2">
+                <ShieldCheck className="w-4 h-4" /> Get Started
+              </a>
+            </div>
           </div>
         )}
       </div>
