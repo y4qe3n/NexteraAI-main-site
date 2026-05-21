@@ -1,5 +1,48 @@
+# Dependencies & build outputs
 dist/
+build/
 node_modules/
+.cache/
+.vite/
+
+# Cloudflare Workers state
 .wrangler/
-.dev.vars
 worker-configuration.d.ts
+
+# Secrets — NEVER commit
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+.dev.vars
+*.dev.vars
+.secrets/
+*.pem
+*.key
+private-key.*
+
+# Logs
+*.log
+wrangler.log
+auth-worker.log
+auth-worker.err.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Knowledge base datasets (large files)
+knowledge_base/
