@@ -103,7 +103,7 @@ export default function Security() {
             your business to detect threats the moment they emerge. You run the company — we run the defense.
           </p>
 
-          <div className="sec-grid mt-10 grid sm:grid-cols-3 gap-4">
+          <div className="sec-grid mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {PILLARS.map((p, i) => (
               <div key={i} data-testid={`security-pillar-${i}`} className="sec-pillar nx-card p-5">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-[#2a1f49] to-[#17122a] border border-[rgba(159,134,232,0.25)]">

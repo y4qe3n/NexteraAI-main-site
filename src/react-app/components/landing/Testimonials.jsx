@@ -44,7 +44,7 @@ export default function Testimonials() {
           </h2>
         </div>
 
-        <div className="test-grid mt-14 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
+        <div className="test-grid mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
           {REVIEWS.map((review, i) => (
             <figure
               key={i}

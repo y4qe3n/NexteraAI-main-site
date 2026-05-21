@@ -107,7 +107,7 @@ export default function Solution() {
 
         <div className="sol-right relative">
           <div className="relative rounded-[22px] p-6 md:p-8 nx-glass shadow-[0_30px_80px_-20px_rgba(98,76,171,0.35)]">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Tile icon={LayoutDashboard} title="Operations" desc="Centralised dashboard for tasks, teams, and data." />
               <Tile icon={ShieldCheck} title="Security" desc="AI-driven protection across devices, email & cloud." />
               <Tile icon={Zap} title="Automation" desc="Workflows that run themselves so you can focus on growth." />

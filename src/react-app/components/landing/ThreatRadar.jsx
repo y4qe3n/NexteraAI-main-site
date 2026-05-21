@@ -117,7 +117,7 @@ export default function ThreatRadar() {
             </p>
           </div>
 
-          <div className="tr-stats mt-10 grid grid-cols-3 gap-4">
+          <div className="tr-stats mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
             <StatBox label="Threats blocked" prefix="" suffix="+" className="tr-count-threats" />
             <StatBox label="Devices monitored" prefix="" suffix="" className="tr-count-devices" />
             <StatBox label="Uptime" prefix="" suffix="%" className="tr-count-uptime" />
