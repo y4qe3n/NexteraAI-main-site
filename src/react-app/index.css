@@ -42,40 +42,40 @@
   }
 
   .dark {
-    --background: 0 0% 4%;
-    --foreground: 270 30% 95%;
-    --card: 260 20% 8%;
-    --card-foreground: 270 30% 95%;
-    --popover: 260 20% 8%;
-    --popover-foreground: 270 30% 95%;
-    --primary: 262 47% 49%;
-    --primary-foreground: 270 50% 95%;
-    --secondary: 260 15% 12%;
-    --secondary-foreground: 270 30% 95%;
-    --muted: 260 15% 15%;
-    --muted-foreground: 270 15% 65%;
-    --accent: 262 30% 20%;
-    --accent-foreground: 270 30% 95%;
+    --background: 225 35% 5%;
+    --foreground: 45 40% 96%;
+    --card: 224 30% 8%;
+    --card-foreground: 45 40% 96%;
+    --popover: 224 30% 8%;
+    --popover-foreground: 45 40% 96%;
+    --primary: 164 68% 47%;
+    --primary-foreground: 225 35% 5%;
+    --secondary: 225 24% 13%;
+    --secondary-foreground: 45 40% 96%;
+    --muted: 225 18% 16%;
+    --muted-foreground: 220 12% 68%;
+    --accent: 166 56% 18%;
+    --accent-foreground: 45 40% 96%;
     --destructive: 0 72.2% 50.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 262 20% 20%;
-    --input: 262 20% 18%;
-    --ring: 262 47% 49%;
-    --chart-1: 262 70% 70%;
-    --chart-2: 262 75% 60%;
-    --chart-3: 262 80% 50%;
-    --chart-4: 262 83% 45%;
-    --chart-5: 262 85% 40%;
-    --sidebar: 260 20% 6%;
-    --sidebar-foreground: 270 30% 95%;
-    --sidebar-primary: 262 47% 49%;
-    --sidebar-primary-foreground: 270 50% 95%;
-    --sidebar-accent: 262 30% 15%;
-    --sidebar-accent-foreground: 270 30% 95%;
-    --sidebar-border: 262 20% 18%;
-    --sidebar-ring: 262 47% 49%;
-    --gradient-color: #6366f1;
-    --sparkles-color: #ffffff;
+    --border: 223 20% 20%;
+    --input: 223 20% 18%;
+    --ring: 164 68% 47%;
+    --chart-1: 164 68% 47%;
+    --chart-2: 198 85% 58%;
+    --chart-3: 31 95% 62%;
+    --chart-4: 45 93% 58%;
+    --chart-5: 339 82% 62%;
+    --sidebar: 224 30% 6%;
+    --sidebar-foreground: 45 40% 96%;
+    --sidebar-primary: 164 68% 47%;
+    --sidebar-primary-foreground: 225 35% 5%;
+    --sidebar-accent: 225 18% 14%;
+    --sidebar-accent-foreground: 45 40% 96%;
+    --sidebar-border: 223 20% 16%;
+    --sidebar-ring: 164 68% 47%;
+    --gradient-color: #7ef0c3;
+    --sparkles-color: #fef08a;
   }
 }
 
@@ -310,7 +310,7 @@ h6,
   gap: 0.5rem;
   padding: 0.85rem 1.6rem;
   border-radius: 999px;
-  background: linear-gradient(180deg, #7a5fd1 0%, #624cab 100%);
+  background: linear-gradient(135deg, #8B5CF6 0%, #624CAB 52%, #4c3b8f 100%);
   color: #fff;
   font-weight: 600;
   font-size: 0.95rem;
@@ -320,7 +320,8 @@ h6,
   vertical-align: middle;
   box-shadow:
     0 0 0 1px rgba(255,255,255,0.06) inset,
-    0 8px 30px -6px rgba(98,76,171,0.55);
+    0 12px 34px -10px rgba(139,92,246,0.72),
+    0 0 28px -16px rgba(139,92,246,0.9);
   box-sizing: border-box;
   transition: transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s ease, filter 0.3s ease;
   overflow: hidden;
@@ -336,11 +337,12 @@ h6,
 }
 
 .nx-btn-primary:hover {
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-2px);
   filter: brightness(1.12);
   box-shadow: 
-    0 12px 40px -6px rgba(98,76,171,0.8),
-    0 0 0 1px rgba(159,134,232,0.3) inset;
+    0 18px 48px -14px rgba(139,92,246,0.95),
+    0 0 0 1px rgba(255,255,255,0.14) inset,
+    0 0 36px -18px rgba(139,92,246,1);
 }
 
 .nx-btn-primary:hover::after {
@@ -348,7 +350,18 @@ h6,
 }
 
 .nx-btn-primary:active {
-  transform: translateY(0) scale(0.98);
+  transform: translateY(0) scale(0.99);
+}
+
+.nx-btn-primary:focus-visible,
+.nx-btn-ghost:focus-visible,
+.nx-subscribe-btn:focus-visible,
+.nx-enterprise-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(10,10,10,0.95),
+    0 0 0 6px rgba(139,92,246,0.72),
+    0 18px 48px -14px rgba(139,92,246,0.75);
 }
 
 .nx-btn-ghost {
@@ -359,8 +372,8 @@ h6,
   padding: 0.85rem 1.6rem;
   border-radius: 999px;
   color: var(--nx-text);
-  background: rgba(224, 212, 255, 0.04);
-  border: 1px solid var(--nx-border-strong);
+  background: rgba(20, 18, 24, 0.74);
+  border: 1px solid rgba(139, 92, 246, 0.34);
   font-weight: 600;
   font-size: 0.95rem;
   line-height: 1;
@@ -371,14 +384,131 @@ h6,
 }
 
 .nx-btn-ghost:hover {
-  background: rgba(224, 212, 255, 0.1);
-  border-color: rgba(159, 134, 232, 0.4);
+  background: rgba(98, 76, 171, 0.18);
+  border-color: rgba(139, 92, 246, 0.68);
   transform: translateY(-1px);
-  box-shadow: 0 4px 20px -6px rgba(98, 76, 171, 0.3);
+  box-shadow: 0 12px 34px -16px rgba(139, 92, 246, 0.72);
 }
 
 .nx-btn-ghost:active {
   transform: translateY(0);
+}
+
+.nx-subscribe-btn,
+.nx-enterprise-btn {
+  position: relative;
+  min-height: 48px;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border-radius: 14px;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid transparent;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    filter 180ms ease;
+}
+
+.nx-subscribe-btn::before,
+.nx-enterprise-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0));
+  transition: opacity 180ms ease;
+}
+
+.nx-subscribe-btn {
+  color: #fff;
+  background: linear-gradient(135deg, #8B5CF6 0%, #624CAB 48%, #4f3c96 100%);
+  border-color: rgba(205, 190, 255, 0.22);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.18) inset,
+    0 18px 44px -18px rgba(139,92,246,0.94),
+    0 0 30px -20px rgba(139,92,246,1);
+}
+
+.nx-subscribe-btn-featured {
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,255,255,0.2), transparent 35%),
+    linear-gradient(135deg, #9F7AEA 0%, #8B5CF6 34%, #624CAB 100%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.22) inset,
+    0 24px 60px -20px rgba(139,92,246,1),
+    0 0 42px -20px rgba(139,92,246,1);
+}
+
+.nx-subscribe-btn:hover,
+.nx-enterprise-btn:hover {
+  transform: translateY(-2px);
+}
+
+.nx-subscribe-btn:hover {
+  filter: brightness(1.08);
+  border-color: rgba(205,190,255,0.48);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.24) inset,
+    0 26px 62px -22px rgba(139,92,246,1),
+    0 0 44px -18px rgba(139,92,246,1);
+}
+
+.nx-subscribe-btn:hover::before,
+.nx-enterprise-btn:hover::before {
+  opacity: 1;
+}
+
+.nx-subscribe-btn:active,
+.nx-enterprise-btn:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.nx-enterprise-btn {
+  color: #F7F4FF;
+  background:
+    linear-gradient(180deg, rgba(20,18,24,0.92), rgba(20,18,24,0.72));
+  border-color: rgba(139,92,246,0.42);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 16px 42px -24px rgba(139,92,246,0.7);
+  backdrop-filter: blur(14px);
+}
+
+.nx-enterprise-btn:hover {
+  color: #fff;
+  background:
+    linear-gradient(180deg, rgba(98,76,171,0.28), rgba(20,18,24,0.82));
+  border-color: rgba(139,92,246,0.82);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.12) inset,
+    0 22px 54px -22px rgba(139,92,246,0.86),
+    0 0 34px -22px rgba(139,92,246,0.9);
+}
+
+.nx-subscribe-btn svg,
+.nx-enterprise-btn svg,
+.nx-btn-primary svg {
+  transition: transform 180ms ease;
+}
+
+.nx-subscribe-btn:hover svg[data-icon-end],
+.nx-enterprise-btn:hover svg[data-icon-end],
+.nx-btn-primary:hover svg[data-icon-end] {
+  transform: translateX(3px);
 }
 
 .nx-badge {
@@ -742,4 +872,125 @@ h2 {
 h3 {
   font-size: inherit;
   line-height: inherit;
+}
+
+/* ========================================
+   DASHBOARD VISUAL SYSTEM
+   Scoped to the dashboard shell so the marketing pages keep their own feel.
+   ======================================== */
+
+.nx-dashboard-shell {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(126, 240, 195, 0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(250, 204, 21, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(5, 8, 14, 0.98), rgba(6, 8, 15, 0.96));
+}
+
+.nx-dashboard-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.72), transparent 95%);
+  pointer-events: none;
+}
+
+.nx-dashboard-sidebar {
+  background: linear-gradient(180deg, rgba(10, 14, 24, 0.96), rgba(8, 11, 19, 0.98));
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.nx-dashboard-topbar {
+  background: rgba(7, 10, 17, 0.84);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.nx-dashboard-view {
+  position: relative;
+  z-index: 0;
+}
+
+.nx-dashboard-view [data-slot="card"] {
+  background:
+    linear-gradient(180deg, rgba(15, 19, 30, 0.94), rgba(10, 13, 22, 0.96)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 1.65rem !important;
+  box-shadow:
+    0 20px 60px -30px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.nx-dashboard-view [data-slot="card"]:hover {
+  border-color: rgba(126, 240, 195, 0.16) !important;
+  box-shadow:
+    0 24px 70px -30px rgba(0, 0, 0, 0.88),
+    0 0 0 1px rgba(126, 240, 195, 0.08) inset;
+}
+
+.nx-dashboard-view [data-slot="button"] {
+  border-radius: 9999px;
+  box-shadow: none;
+}
+
+.nx-dashboard-view [data-slot="button"][data-variant="default"] {
+  background: linear-gradient(135deg, #7ef0c3 0%, #93c5fd 100%);
+  color: #071018;
+}
+
+.nx-dashboard-view [data-slot="button"][data-variant="outline"],
+.nx-dashboard-view [data-slot="button"][data-variant="secondary"],
+.nx-dashboard-view [data-slot="button"][data-variant="ghost"] {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.09);
+  color: #ecfdf5;
+}
+
+.nx-dashboard-view [data-slot="button"][data-variant="outline"]:hover,
+.nx-dashboard-view [data-slot="button"][data-variant="secondary"]:hover,
+.nx-dashboard-view [data-slot="button"][data-variant="ghost"]:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nx-dashboard-view [data-slot="badge"] {
+  border-radius: 9999px;
+  border-color: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nx-dashboard-view [data-slot="input"],
+.nx-dashboard-view [data-slot="select-trigger"] {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+}
+
+.nx-dashboard-view [data-slot="input"]::placeholder {
+  color: rgba(203, 213, 225, 0.55);
+}
+
+.nx-dashboard-view [data-slot="table"] {
+  overflow: hidden;
+  border-radius: 1.25rem;
+}
+
+.nx-dashboard-view [data-slot="table"] tr {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.nx-dashboard-view [data-slot="table"] tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.nx-dashboard-view [data-slot="separator"] {
+  background: rgba(255, 255, 255, 0.08);
 }
