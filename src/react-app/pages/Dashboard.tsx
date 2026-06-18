@@ -1,49 +1,32 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router";
-import { useAuth } from "@/react-app/contexts/AuthContext";
-import { Card } from "@/react-app/components/ui/card";
-import { Button } from "@/react-app/components/ui/button";
-import { Badge } from "@/react-app/components/ui/badge";
-import { Progress } from "@/react-app/components/ui/progress";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useAuth } from "@/react-app/lib/AuthContext";
 import { useAccessControl } from "@/react-app/hooks/useAccessControl";
 import { EmployeeDashboard } from "./EmployeeDashboard";
 import {
   Shield,
   ShieldCheck,
   ShieldAlert,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
+  Monitor,
   Mail,
-  Lock,
   Database,
-  TrendingUp,
-  Clock,
-  Radar,
   Loader2,
   AlertCircle,
-  Maximize2,
-  Minimize2,
+  ArrowUpRight,
+  ChevronRight,
+  Radar,
+  Activity,
   Sparkles,
-  Crown,
+  BadgeInfo,
+  FileCheck,
+  CreditCard,
 } from "lucide-react";
 
 type DashboardStats = {
   organization: { id: number; name: string; devices_limit: number };
-  threats: {
-    total: number;
-    active: number;
-    blocked: number;
-    resolved: number;
-    critical: number;
-    high: number;
-  };
-  devices: {
-    total: number;
-    protected: number;
-    active: number;
-    limit: number;
-  };
+  threats: { total: number; active: number; blocked: number; resolved: number; critical: number; high: number };
+  devices: { total: number; protected: number; active: number; limit: number };
   compliance: { score: number; completed: number; total: number };
   emails: { scannedThisWeek: number; threatsDetected: number };
 };
@@ -58,497 +41,697 @@ type Threat = {
   detected_at: string;
 };
 
-function formatTimeAgo(dateStr: string) {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  if (diffMins < 60) return `${diffMins} min ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-  return `${Math.floor(diffHours / 24)} days ago`;
+const pageVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.04,
+    },
+  },
+};
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 18 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const },
+  },
+};
+
+function timeAgo(dateStr: string) {
+  const ms = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function getSeverityColor(severity: string) {
+function severityTone(severity: string) {
   switch (severity) {
     case "critical":
-      return "bg-red-500/10 text-red-500 border-red-500/20";
+      return {
+        dot: "#F87171",
+        chipBg: "rgba(248,113,113,0.14)",
+        chipText: "#FCA5A5",
+      };
     case "high":
-      return "bg-orange-500/10 text-orange-500 border-orange-500/20";
+      return {
+        dot: "#FB923C",
+        chipBg: "rgba(251,146,60,0.14)",
+        chipText: "#FDBA74",
+      };
     case "medium":
-      return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
+      return {
+        dot: "#FACC15",
+        chipBg: "rgba(250,204,21,0.14)",
+        chipText: "#FDE68A",
+      };
     default:
-      return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+      return {
+        dot: "#7EF0C3",
+        chipBg: "rgba(126,240,195,0.14)",
+        chipText: "#A7F3D0",
+      };
   }
 }
 
-function getStatusIcon(status: string) {
-  switch (status) {
-    case "blocked":
-    case "resolved":
-      return <ShieldCheck className="w-4 h-4 text-green-500" />;
-    case "detected":
-    case "investigating":
-      return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
-    default:
-      return <XCircle className="w-4 h-4 text-red-500" />;
-  }
+function formatCurrency(value: number) {
+  return `R${value.toLocaleString("en-ZA")}`;
+}
+
+function formatPercent(value: number) {
+  return `${Math.max(0, Math.min(100, Math.round(value)))}%`;
 }
 
 export function Dashboard() {
-  const { user, isEmployee } = useAuth();
-  const { isBasic } = useAccessControl();
+  const { admin } = useAuth();
+  const { isBasic, isEmployee } = useAccessControl();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [threats, setThreats] = useState<Threat[]>([]);
   const [loading, setLoading] = useState(true);
-  const [alertsExpanded, setAlertsExpanded] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [partialError, setPartialError] = useState<string | null>(null);
 
-  // Show EmployeeDashboard for employees
-  if (isEmployee()) {
-    return <EmployeeDashboard />;
-  }
+  const [billingSummary, setBillingSummary] = useState<{
+    tier: string;
+    deviceCount: number;
+    deviceLimit: number | null;
+    nextInvoiceEstimateZar: number;
+    billingCycle: string;
+  } | null>(null);
 
-  // Get user's first name for welcome message
-  const firstName = user?.name || "there";
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
+    let revoked = false;
+
+    fetch("/api/organization/logo", { credentials: "include" })
+      .then((r) => {
+        if (r.ok && r.headers.get("content-type")?.startsWith("image")) {
+          return r.blob();
+        }
+        return null;
+      })
+      .then((blob) => {
+        if (!blob || revoked) return;
+        setLogoUrl(URL.createObjectURL(blob));
+      })
+      .catch(() => {});
+
+    return () => {
+      revoked = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/billing/summary", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) {
+          setBillingSummary({
+            tier: data.tier,
+            deviceCount: data.devices?.current ?? 0,
+            deviceLimit: data.devices?.included ?? null,
+            nextInvoiceEstimateZar: data.next_invoice?.total_incl_vat ?? 0,
+            billingCycle: data.billing_cycle,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const load = async () => {
       try {
         setLoading(true);
-        setError(null);
-        setPartialError(null);
-        
-        // Fetch stats and threats independently to handle partial failures
-        let statsData: DashboardStats | null = null;
-        let threatsData: Threat[] = [];
-        let statsError = false;
-        let threatsError = false;
+        const [sRes, tRes] = await Promise.all([
+          fetch("/api/dashboard/stats", { credentials: "include" }),
+          fetch("/api/threats?limit=5", { credentials: "include" }),
+        ]);
 
-        try {
-          const statsRes = await fetch("/api/dashboard/stats", { credentials: "include" });
-          if (statsRes.ok) {
-            statsData = await statsRes.json();
-          } else {
-            statsError = true;
-          }
-        } catch (err) {
-          console.error("Stats fetch error:", err);
-          statsError = true;
-        }
-
-        try {
-          const threatsRes = await fetch("/api/threats?limit=5", { credentials: "include" });
-          if (threatsRes.ok) {
-            threatsData = await threatsRes.json();
-          } else {
-            threatsError = true;
-          }
-        } catch (err) {
-          console.error("Threats fetch error:", err);
-          threatsError = true;
-        }
-
-        // Set partial error message if some data failed
-        if (statsError || threatsError) {
-          const failedParts = [];
-          if (statsError) failedParts.push("dashboard stats");
-          if (threatsError) failedParts.push("threats data");
-          setPartialError(`Some data could not be loaded: ${failedParts.join(", ")}`);
-        }
-
-        // Show data if we got at least stats
-        if (statsData) {
-          setStats(statsData);
-          setThreats(threatsData);
-        } else if (!threatsError) {
-          // If we only got threats, show them with default stats
-          setStats({
-            organization: { id: 0, name: "My Organization", devices_limit: 10 },
-            threats: { total: 0, active: 0, blocked: 0, resolved: 0, critical: 0, high: 0 },
-            devices: { total: 0, protected: 0, active: 0, limit: 10 },
-            compliance: { score: 0, completed: 0, total: 17 },
-            emails: { scannedThisWeek: 0, threatsDetected: 0 },
-          });
-          setThreats(threatsData);
-        } else {
-          setError("Failed to load dashboard data. Please try again.");
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
+        if (sRes.ok) setStats(await sRes.json());
+        if (tRes.ok) setThreats(await tRes.json());
+        if (!sRes.ok && !tRes.ok) setError("Failed to load dashboard data.");
+      } catch {
+        setError("Something went wrong. Please refresh.");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+
+    load();
   }, []);
+
+  if (isEmployee) return <EmployeeDashboard />;
+
+  const firstName = admin?.name?.split(" ")[0] || "there";
+  const t = stats?.threats ?? { blocked: 0, active: 0, total: 0, resolved: 0, critical: 0, high: 0 };
+  const d = stats?.devices ?? { total: 0, protected: 0, active: 0, limit: 0 };
+  const c = stats?.compliance ?? { score: 0, completed: 0, total: 0 };
+  const e = stats?.emails ?? { scannedThisWeek: 0, threatsDetected: 0 };
+
+  const deviceCoverage = useMemo(() => {
+    if (!d.limit) return 0;
+    return Math.round((d.protected / d.limit) * 100);
+  }, [d.limit, d.protected]);
+
+  const complianceCoverage = useMemo(() => {
+    if (!c.total) return 0;
+    return Math.round((c.completed / c.total) * 100);
+  }, [c.completed, c.total]);
+
+  const posturing = useMemo(() => {
+    if (t.active > 0 || t.critical > 0) return "attention";
+    if (deviceCoverage < 100 || complianceCoverage < 100) return "watch";
+    return "steady";
+  }, [complianceCoverage, deviceCoverage, t.active, t.critical]);
+
+  const postureLabel =
+    posturing === "attention"
+      ? "Active response needed"
+      : posturing === "watch"
+        ? "Coverage improving"
+        : "Security posture steady";
+
+  const postureCopy =
+    posturing === "attention"
+      ? `${t.active} active alert${t.active === 1 ? "" : "s"} and ${t.critical} critical item${t.critical === 1 ? "" : "s"} need attention.`
+      : posturing === "watch"
+        ? `Coverage is solid, but there is still room to finish device and compliance work.`
+        : `All clear, ${firstName}. Device, email, and compliance signals are aligned.`;
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      <div className="min-h-[55vh] rounded-[2rem] border border-white/5 bg-[radial-gradient(circle_at_top,rgba(126,240,195,0.08),transparent_35%),linear-gradient(180deg,rgba(8,12,18,0.96),rgba(8,12,18,0.88))] p-6">
+        <div className="mx-auto flex min-h-[50vh] max-w-5xl flex-col items-center justify-center gap-4 text-center">
+          <div className="relative">
+            <div className="absolute inset-0 animate-ping rounded-full border border-emerald-400/30" />
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-400/10">
+              <Loader2 className="h-6 w-6 animate-spin text-emerald-300" />
+            </div>
+          </div>
+          <div>
+            <p className="text-sm uppercase tracking-[0.35em] text-slate-500">Security command deck</p>
+            <p className="mt-2 text-lg text-slate-200">Loading live posture, billing, and threat signals.</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <Card className="p-6">
-        <div className="flex items-center gap-3 text-destructive">
-          <AlertCircle className="w-6 h-6" />
-          <div>
-            <p className="font-medium">Failed to load dashboard</p>
-            <p className="text-sm text-muted-foreground">{error}</p>
+      <div className="rounded-[1.75rem] border border-rose-400/15 bg-rose-500/5 p-6">
+        <div className="flex items-start gap-3">
+          <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-3 text-rose-300">
+            <AlertCircle className="h-5 w-5" />
+          </div>
+          <div className="max-w-xl">
+            <h2 className="text-lg font-semibold text-slate-100">Dashboard could not load</h2>
+            <p className="mt-1 text-sm text-slate-300">{error}</p>
+            <button
+              className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-white/10"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
           </div>
         </div>
-      </Card>
+      </div>
     );
   }
 
-  const threatStats = stats?.threats ?? { blocked: 0, active: 0, total: 0, resolved: 0, critical: 0, high: 0 };
-  // Calculate threat-based score: more threats handled = higher score
-  const totalThreats = threatStats.total || 1;
-  const resolvedRatio = (threatStats.resolved || 0) / totalThreats;
-  const blockedRatio = (threatStats.blocked || 0) / totalThreats;
-  const threatScore = Math.round((resolvedRatio * 50 + blockedRatio * 50));
-  const complianceScore = threatScore;
-  const overallScore = complianceScore;
-  const criticalAlerts = threatStats.critical ?? 0;
-  const overallState =
-    overallScore >= 85 ? "good" : overallScore >= 60 ? "warning" : "poor";
-  const heroGradient =
-    overallState === "good"
-      ? "from-green-500/20 via-emerald-500/10 to-emerald-500/5 border-green-500/30"
-      : overallState === "warning"
-      ? "from-yellow-400/20 via-orange-400/10 to-amber-500/5 border-amber-400/30"
-      : "from-purple-500/20 via-purple-900/30 to-background border-purple-500/30";
-  const scoreColor =
-    overallState === "good"
-      ? "text-green-500"
-      : overallState === "warning"
-      ? "text-amber-500"
-      : "text-rose-500";
-  const protectionStatus = [
-    {
-      name: "Endpoint Shield",
-      status: "active",
-      devices:
-        "Auto-scans devices for malware and ransomware. Blocks threats in real-time to prevent 80% of device-based attacks.",
-      icon: Shield,
-    },
-    {
-      name: "Email Guard",
-      status: "active",
-      devices:
-        "Advanced phishing protection that filters emails, scans attachments, and flags SA-specific scams like SIM-swap lures.",
-      icon: Mail,
-    },
-    {
-      name: "Access Control",
-      status: "active",
-      devices:
-        "Enforce MFA, audit logins, and manage passwords. Blocks 99% of credential stuffing attacks automatically.",
-      icon: Lock,
-    },
-    {
-      name: "Data Vault",
-      status: "active",
-      devices:
-        "Automated encrypted backups with immutability. Quick recovery from ransomware with 3-2-1 backup strategy.",
-      icon: Database,
-    },
-  ];
-
-  const lastThreat = threats[0];
-  const lastThreatMsg = lastThreat
-    ? `Last threat ${lastThreat.status === "blocked" ? "blocked" : "detected"} ${formatTimeAgo(lastThreat.detected_at)}`
-    : "No recent threats";
+  const tone = severityTone(t.critical > 0 ? "critical" : t.active > 0 ? "high" : "default");
 
   return (
-    <div className="space-y-6">
-      {/* Welcome message */}
-      <div className="flex items-center gap-2">
-        <Sparkles className="w-5 h-5 text-primary" />
-        <h1 className="text-2xl font-semibold">
-          Welcome back, {firstName}!
-        </h1>
+    <motion.div
+      className="relative overflow-hidden rounded-[2.25rem] border border-white/5 bg-[radial-gradient(circle_at_top_left,rgba(126,240,195,0.14),transparent_28%),radial-gradient(circle_at_top_right,rgba(250,204,21,0.08),transparent_24%),linear-gradient(180deg,rgba(8,12,18,0.96),rgba(8,12,18,0.92))] p-4 sm:p-6 lg:p-8"
+      variants={pageVariants}
+      initial="hidden"
+      animate="show"
+    >
+      <div className="pointer-events-none absolute inset-0 opacity-60">
+        <div className="nx-grid-bg absolute inset-0 opacity-30" />
+        <div className="absolute left-1/2 top-0 h-80 w-80 -translate-x-1/2 rounded-full bg-emerald-400/10 blur-3xl" />
+        <div className="absolute right-0 top-24 h-72 w-72 rounded-full bg-amber-300/10 blur-3xl" />
       </div>
 
-      {/* Upgrade banner for Basic plan users */}
-      {isBasic && (
-        <Card className="p-4 bg-gradient-to-r from-amber-500/20 via-orange-500/10 to-amber-500/5 border-amber-500/30">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                <Crown className="w-5 h-5 text-amber-500" />
-              </div>
+      <div className="relative space-y-6 lg:space-y-8">
+        <motion.section
+          className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]"
+          variants={sectionVariants}
+        >
+          <div className="nx-glass rounded-[2rem] p-6 sm:p-7 lg:p-8">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-emerald-200">
+                Security command deck
+              </span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.28em] text-slate-400">
+                {stats?.organization.name ?? "Your organisation"}
+              </span>
+            </div>
+
+            <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(260px,0.9fr)] lg:items-end">
               <div>
-                <p className="font-medium">Upgrade to Pro</p>
-                <p className="text-sm text-muted-foreground">
-                  Get advanced threat detection, priority support, and unlimited devices.
+                <div className="flex items-center gap-3 text-sm text-slate-400">
+                  <Sparkles className="h-4 w-4 text-emerald-300" />
+                  Live threat, device, and compliance signals
+                </div>
+                <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-[-0.04em] text-slate-50 sm:text-5xl xl:text-6xl">
+                  {postureLabel}
+                </h1>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+                  {postureCopy}
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Link
+                    to="/dashboard/threats"
+                    className="inline-flex items-center gap-2 rounded-full bg-emerald-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-emerald-300"
+                  >
+                    View alerts
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    to="/dashboard/endpoints"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:-translate-y-0.5 hover:bg-white/10"
+                  >
+                    Open devices
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    to="/dashboard/billing"
+                    className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/10 px-5 py-3 text-sm font-semibold text-amber-100 transition hover:-translate-y-0.5 hover:bg-amber-300/15"
+                  >
+                    Review billing
+                    <CreditCard className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+
+              <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/55 p-5 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.75)]">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Posture core</p>
+                    <p className="mt-1 text-sm font-medium text-slate-200">Coverage and response</p>
+                  </div>
+                  <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
+                    {formatPercent(deviceCoverage)} devices
+                  </div>
+                </div>
+
+                <div className="mt-5 flex items-center justify-center">
+                  <div
+                    className="relative flex h-56 w-56 items-center justify-center rounded-full border border-white/10"
+                    style={{
+                      background: `conic-gradient(from 210deg, ${tone.dot} 0 ${Math.max(deviceCoverage, 6)}%, rgba(255,255,255,0.07) ${Math.max(deviceCoverage, 6)}% 100%)`,
+                    }}
+                  >
+                    <div className="absolute inset-4 rounded-full border border-white/8 bg-slate-950/90 shadow-inner" />
+                    <div className="relative z-10 flex h-32 w-32 items-center justify-center rounded-full border border-white/10 bg-[radial-gradient(circle_at_top,rgba(126,240,195,0.14),rgba(8,12,18,0.95))]">
+                      {logoUrl ? (
+                        <img src={logoUrl} alt="Organisation logo" className="h-16 w-16 rounded-full object-contain" />
+                      ) : (
+                        <Shield className="h-12 w-12 text-emerald-300" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  <KpiChip icon={<ShieldCheck className="h-4 w-4" />} label="Blocked" value={t.blocked} accent="#7EF0C3" />
+                  <KpiChip icon={<ShieldAlert className="h-4 w-4" />} label="Active" value={t.active} accent={t.active > 0 ? "#F97316" : "#7EF0C3"} />
+                  <KpiChip icon={<FileCheck className="h-4 w-4" />} label="Compliance" value={formatPercent(complianceCoverage)} accent="#FACC15" />
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-slate-500">
+                    <span>Environment pulse</span>
+                    <span>{stats?.emails.scannedThisWeek ?? 0} emails scanned</span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-xl border border-white/8 bg-slate-950/50 p-3">
+                      <p className="text-slate-500">Devices protected</p>
+                      <p className="mt-1 text-lg font-semibold text-slate-100">{d.protected} / {d.limit || d.total}</p>
+                    </div>
+                    <div className="rounded-xl border border-white/8 bg-slate-950/50 p-3">
+                      <p className="text-slate-500">Threats stopped</p>
+                      <p className="mt-1 text-lg font-semibold text-slate-100">{e.threatsDetected}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <label
+                  className="mt-4 flex cursor-pointer items-center justify-center rounded-full border border-dashed border-white/12 bg-white/[0.02] px-4 py-3 text-sm text-slate-300 transition hover:bg-white/[0.05]"
+                  title="Upload your company logo"
+                >
+                  <span>{logoUploading ? "Uploading logo..." : "Update company logo"}</span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setLogoUploading(true);
+                      const fd = new FormData();
+                      fd.append("logo", file);
+                      try {
+                        const res = await fetch("/api/organization/logo", {
+                          method: "POST",
+                          credentials: "include",
+                          body: fd,
+                        });
+                        if (res.ok) {
+                          setLogoUrl(URL.createObjectURL(file));
+                        }
+                      } catch {
+                        // no-op
+                      } finally {
+                        setLogoUploading(false);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" variants={sectionVariants}>
+          <MetricTile
+            icon={<ShieldCheck className="h-5 w-5" />}
+            label="Threats blocked"
+            value={t.blocked}
+            sub={`${t.resolved} resolved`}
+            accent="#7EF0C3"
+          />
+          <MetricTile
+            icon={<ShieldAlert className="h-5 w-5" />}
+            label="Active alerts"
+            value={t.active}
+            sub={t.critical > 0 ? `${t.critical} critical` : "No critical items"}
+            accent={t.active > 0 ? "#F97316" : "#7EF0C3"}
+          />
+          <MetricTile
+            icon={<Monitor className="h-5 w-5" />}
+            label="Device coverage"
+            value={`${d.protected}/${d.limit || d.total}`}
+            sub={`${d.active} online now`}
+            accent="#93C5FD"
+          />
+          <MetricTile
+            icon={<Mail className="h-5 w-5" />}
+            label="Email threats stopped"
+            value={e.threatsDetected}
+            sub={`${e.scannedThisWeek} scanned this week`}
+            accent="#FACC15"
+          />
+        </motion.section>
+
+        <motion.section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.85fr)]" variants={sectionVariants}>
+          <div className="nx-glass rounded-[2rem] p-0">
+            <div className="flex items-center justify-between border-b border-white/8 px-5 py-4 sm:px-6">
+              <div>
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-500">
+                  <Activity className="h-4 w-4 text-emerald-300" />
+                  Live incident stream
+                </div>
+                <h2 className="mt-2 text-lg font-semibold text-slate-50">Recent security activity</h2>
+              </div>
+              <Link to="/dashboard/threats" className="inline-flex items-center gap-1 text-sm font-medium text-emerald-300 transition hover:text-emerald-200">
+                All events
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            {threats.length === 0 ? (
+              <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+                <div className="rounded-full border border-emerald-400/15 bg-emerald-400/10 p-4 text-emerald-200">
+                  <ShieldCheck className="h-8 w-8" />
+                </div>
+                <p className="mt-4 text-lg font-medium text-slate-100">No recent threats</p>
+                <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">
+                  The environment looks calm right now. The next event that arrives will appear here with source, target, and severity.
                 </p>
               </div>
-            </div>
-            <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white" asChild>
-              <Link to="/dashboard/settings">Upgrade Now</Link>
-            </Button>
-          </div>
-        </Card>
-      )}
-
-      {/* Partial data warning */}
-      {partialError && (
-        <Card className="p-4 bg-yellow-500/10 border-yellow-500/30">
-          <div className="flex items-center gap-3 text-yellow-600">
-            <AlertCircle className="w-5 h-5" />
-            <p className="text-sm">{partialError}</p>
-          </div>
-        </Card>
-      )}
-
-      {/* Top hero */}
-      <Card
-        className={`p-6 sm:p-8 bg-gradient-to-r ${heroGradient}`}
-      >
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-          <div className="flex items-center gap-6">
-            <div className="flex flex-col items-center justify-center">
-              <span className={`text-4xl font-bold ${scoreColor}`}>
-                {overallScore}%
-              </span>
-              <span className="text-xs text-muted-foreground mt-1">
-                Security posture
-              </span>
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-semibold">
-                Executive Security Overview
-              </h2>
-              <p className="text-sm sm:text-base text-muted-foreground mt-2">
-                Your business is {overallScore}% protected – {criticalAlerts} critical alerts.
-              </p>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                {lastThreatMsg}.
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="outline">
-              Org: {stats?.organization.name ?? "Unknown"}
-            </Badge>
-            <Badge variant="outline">
-              Devices limit: {stats?.devices.limit ?? 0}
-            </Badge>
-            <Badge variant="outline">
-              POPIA score: {complianceScore}%
-            </Badge>
-          </div>
-        </div>
-      </Card>
-
-
-      {/* Stats grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Threats Blocked</p>
-              <p className="text-3xl font-bold mt-1">{threatStats.blocked}</p>
-              <div className="flex items-center gap-1 mt-2 text-sm text-green-500">
-                <TrendingUp className="w-4 h-4" />
-                {stats?.threats.resolved ?? 0} resolved
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-primary" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Active Alerts</p>
-              <p className="text-3xl font-bold mt-1">{threatStats.active}</p>
-              <div className="mt-2 text-xs text-muted-foreground space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-red-500" />
-                    Critical:
-                  </span>
-                  <span className="font-medium">{threatStats.critical ?? 0}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-orange-500" />
-                    High:
-                  </span>
-                  <span className="font-medium">{threatStats.high ?? 0}</span>
-                </div>
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
-              <ShieldAlert className="w-5 h-5 text-orange-500" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Email Threats Stopped</p>
-              <p className="text-3xl font-bold mt-1">
-                {(stats?.emails.threatsDetected ?? 0).toLocaleString()}
-              </p>
-              <div className="flex items-center gap-1 mt-2 text-sm text-muted-foreground">
-                <Clock className="w-4 h-4" />
-                {(stats?.emails.scannedThisWeek ?? 0).toLocaleString()} scanned this week
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-              <Radar className="w-5 h-5 text-blue-500" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">POPIA Compliance Score</p>
-              <p className="text-3xl font-bold mt-1">{complianceScore}%</p>
-              <Progress value={complianceScore} className="mt-3 h-2" />
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-primary" />
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Recent alerts - Expandable */}
-      <div className={`transition-all duration-300 ${alertsExpanded ? 'fixed inset-4 z-50' : 'grid lg:grid-cols-3 gap-6'}`}>
-        <Card className={`p-0 overflow-hidden ${alertsExpanded ? 'h-full w-full' : 'lg:col-span-2'}`}>
-          <div className="p-4 border-b border-border flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold">Recent Alerts</h3>
-              <p className="text-sm text-muted-foreground">
-                {alertsExpanded ? 'All security events across your environment.' : 'Last 5 security events across your environment.'}
-              </p>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-white"
-              onClick={() => setAlertsExpanded(!alertsExpanded)}
-            >
-              {alertsExpanded ? (
-                <><Minimize2 className="w-4 h-4 mr-1" /> Collapse</>
-              ) : (
-                <><Maximize2 className="w-4 h-4 mr-1" /> View All Alerts</>
-              )}
-            </Button>
-          </div>
-          <div className={`divide-y divide-border ${alertsExpanded ? 'max-h-[calc(100vh-200px)] overflow-y-auto' : ''}`}>
-            {threats.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                <ShieldCheck className="w-12 h-12 mx-auto mb-2 text-green-500/50" />
-                <p className="font-medium">No recent threats</p>
-                <p className="text-sm">Your systems are clear. No security events to display.</p>
-              </div>
             ) : (
-            threats.map((threat) => (
-              <div key={threat.id} className="p-4 hover:bg-muted/30 transition-colors">
-                <div className="flex items-start gap-4">
-                  <div className="mt-0.5">{getStatusIcon(threat.status)}</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium">{threat.threat_type}</span>
-                      <Badge variant="outline" className={getSeverityColor(threat.severity)}>
-                        {threat.severity}
-                      </Badge>
+              <div className="divide-y divide-white/6">
+                {threats.map((threat) => {
+                  const tone = severityTone(threat.severity);
+
+                  return (
+                    <div key={threat.id} className="grid gap-4 px-5 py-4 sm:px-6 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center">
+                      <div
+                        className="mt-1 h-3 w-3 rounded-full shadow-[0_0_18px_rgba(255,255,255,0.2)]"
+                        style={{ backgroundColor: tone.dot }}
+                      />
+
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="truncate text-sm font-semibold text-slate-100">{threat.threat_type}</p>
+                          <span
+                            className="rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]"
+                            style={{ backgroundColor: tone.chipBg, color: tone.chipText }}
+                          >
+                            {threat.severity}
+                          </span>
+                        </div>
+                        <p className="mt-1 truncate text-sm text-slate-400">
+                          {threat.source ?? "Unknown source"} to {threat.target ?? "Unknown target"}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3 md:justify-end">
+                        <span
+                          className="rounded-full border border-white/8 px-3 py-1 text-xs font-medium capitalize text-slate-200"
+                          style={{
+                            backgroundColor:
+                              threat.status === "blocked" || threat.status === "resolved"
+                                ? "rgba(126,240,195,0.12)"
+                                : "rgba(251,191,36,0.12)",
+                            color:
+                              threat.status === "blocked" || threat.status === "resolved"
+                                ? "#A7F3D0"
+                                : "#FDE68A",
+                          }}
+                        >
+                          {threat.status}
+                        </span>
+                        <span className="text-xs font-mono text-slate-500">{timeAgo(threat.detected_at)}</span>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {threat.source || "Unknown"} → {threat.target || "Unknown"}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <Badge
-                      variant="outline"
-                      className={
-                        threat.status === "blocked"
-                          ? "border-green-500/30 text-green-500"
-                          : threat.status === "resolved"
-                            ? "border-blue-500/30 text-blue-500"
-                            : "border-yellow-500/30 text-yellow-500"
-                      }
-                    >
-                      {threat.status}
-                    </Badge>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formatTimeAgo(threat.detected_at)}
-                    </p>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
-            ))
             )}
           </div>
-        </Card>
 
-        {!alertsExpanded && (
-          /* Protection status */
-          <Card className="p-0 overflow-hidden">
-            <div className="p-4 border-b border-border">
-              <h3 className="font-semibold">Protection Status</h3>
-              <p className="text-sm text-muted-foreground">All systems operational</p>
-            </div>
-            <div className="p-4 space-y-4">
-              {protectionStatus.map((item) => (
-                <div
-                  key={item.name}
-                  className="flex items-center gap-4 p-3 rounded-lg bg-muted/30"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <item.icon className="w-5 h-5 text-primary" />
+          <div className="space-y-6">
+            <InfoCard
+              icon={<Radar className="h-4 w-4" />}
+              title="Systems"
+              eyebrow="Operational status"
+            >
+              <div className="space-y-3">
+                <SystemLine name="Endpoint Shield" active />
+                <SystemLine name="Email Guard" active />
+                <SystemLine name="Access Control" active />
+                <SystemLine name="Data Vault" active />
+              </div>
+            </InfoCard>
+
+            <InfoCard
+              icon={<Database className="h-4 w-4" />}
+              title="Billing"
+              eyebrow="Capacity and plan"
+            >
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-400">Plan tier</p>
+                    <p className="mt-1 text-lg font-semibold text-slate-100 capitalize">
+                      {billingSummary?.tier ?? "basic"}
+                    </p>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">{item.devices}</p>
+                  <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
+                    {billingSummary?.billingCycle ?? "monthly"}
                   </div>
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
                 </div>
-              ))}
-            </div>
-            <div className="p-4 border-t border-border">
-              <Button variant="outline" size="sm" className="w-full text-white" asChild>
-                <Link to="/dashboard/threats">View Threats</Link>
-              </Button>
-            </div>
-          </Card>
-        )}
-      </div>
 
-      {/* Quick actions */}
-      <Card className="p-4">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h3 className="font-semibold">Quick Actions</h3>
-            <p className="text-sm text-muted-foreground">Single-click actions for busy owners</p>
+                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span>Device capacity</span>
+                    <span>
+                      {billingSummary?.deviceCount ?? 0}
+                      {billingSummary?.deviceLimit ? ` / ${billingSummary.deviceLimit}` : ""}
+                    </span>
+                  </div>
+                  <div className="mt-3 h-2 rounded-full bg-white/6">
+                    <div
+                      className="h-2 rounded-full"
+                      style={{
+                        width: `${Math.min(
+                          ((billingSummary?.deviceCount ?? 0) / (billingSummary?.deviceLimit ?? Math.max(d.limit, 1))) * 100,
+                          100,
+                        )}%`,
+                        background: "linear-gradient(90deg, #7EF0C3 0%, #93C5FD 100%)",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-baseline justify-between">
+                  <span className="text-sm text-slate-400">Next invoice</span>
+                  <span className="text-2xl font-semibold tracking-[-0.04em] text-slate-100">
+                    {formatCurrency(billingSummary?.nextInvoiceEstimateZar ?? 0)}
+                  </span>
+                </div>
+
+                <Link
+                  to="/dashboard/billing"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-300 transition hover:text-emerald-200"
+                >
+                  Manage billing
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </InfoCard>
+
+            <InfoCard
+              icon={<BadgeInfo className="h-4 w-4" />}
+              title="Coverage snapshot"
+              eyebrow="At a glance"
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <TinyStat label="Devices protected" value={`${d.protected} / ${d.limit || d.total}`} />
+                <TinyStat label="Compliance" value={`${c.completed} / ${c.total}`} />
+                <TinyStat label="Threats blocked" value={String(t.blocked)} />
+                <TinyStat label="Email alerts" value={String(e.threatsDetected)} />
+              </div>
+            </InfoCard>
+
+            {isBasic && (
+              <Link
+                to="/dashboard/billing"
+                className="block rounded-[1.75rem] border border-amber-300/20 bg-[linear-gradient(135deg,rgba(250,204,21,0.12),rgba(126,240,195,0.08))] p-5 transition hover:-translate-y-0.5 hover:border-amber-300/35"
+              >
+                <p className="text-sm font-semibold text-slate-100">Upgrade to Pro</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  Unlock advanced detection, higher device capacity, and a stronger support tier.
+                </p>
+              </Link>
+            )}
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" size="sm" className="text-white" asChild>
-              <Link to="/dashboard/email">Run Phishing Test</Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild className="text-white">
-              <Link to="/dashboard/threats">View Alerts</Link>
-            </Button>
-            <Button variant="outline" size="sm" className="text-white" asChild>
-              <Link to="/dashboard/compliance">Generate Report</Link>
-            </Button>
-          </div>
+        </motion.section>
+      </div>
+    </motion.div>
+  );
+}
+
+function MetricTile({
+  label,
+  value,
+  sub,
+  icon,
+  accent,
+}: {
+  label: string;
+  value: string | number;
+  sub: string;
+  icon: ReactNode;
+  accent: string;
+}) {
+  return (
+    <div className="nx-glass rounded-[1.5rem] p-5 transition hover:-translate-y-1 hover:border-white/15">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.28em] text-slate-500">{label}</p>
+          <p className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-slate-50">{value}</p>
         </div>
-      </Card>
+        <div className="rounded-2xl border border-white/8 p-3" style={{ backgroundColor: `${accent}18`, color: accent }}>
+          {icon}
+        </div>
+      </div>
+      <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-white/6">
+        <div className="h-full w-2/3 rounded-full" style={{ background: `linear-gradient(90deg, ${accent}, rgba(255,255,255,0.25))` }} />
+      </div>
+      <p className="mt-3 text-sm text-slate-400">{sub}</p>
+    </div>
+  );
+}
+
+function InfoCard({
+  eyebrow,
+  title,
+  icon,
+  children,
+}: {
+  eyebrow: string;
+  title: string;
+  icon: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="nx-glass rounded-[1.75rem] p-5">
+      <div className="flex items-center justify-between gap-4 border-b border-white/8 pb-4">
+        <div>
+          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-500">
+            {icon}
+            {eyebrow}
+          </div>
+          <h2 className="mt-2 text-lg font-semibold text-slate-50">{title}</h2>
+        </div>
+      </div>
+      <div className="pt-5">{children}</div>
+    </div>
+  );
+}
+
+function SystemLine({ name, active }: { name: string; active: boolean }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-white/6 bg-white/[0.02] px-3 py-3">
+      <div className={`h-2.5 w-2.5 rounded-full ${active ? "bg-emerald-300 shadow-[0_0_18px_rgba(126,240,195,0.45)]" : "bg-slate-500"}`} />
+      <span className="flex-1 text-sm text-slate-100">{name}</span>
+      <span className="text-xs font-medium text-slate-400">{active ? "Active" : "Muted"}</span>
+    </div>
+  );
+}
+
+function TinyStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-3">
+      <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-slate-100">{value}</p>
+    </div>
+  );
+}
+
+function KpiChip({
+  label,
+  value,
+  accent,
+  icon,
+}: {
+  label: string;
+  value: string | number;
+  accent: string;
+  icon: ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{label}</p>
+        <span style={{ color: accent }}>{icon}</span>
+      </div>
+      <p className="mt-3 text-2xl font-semibold tracking-[-0.04em]" style={{ color: accent }}>
+        {value}
+      </p>
     </div>
   );
 }
