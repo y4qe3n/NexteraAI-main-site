@@ -1,7 +1,8 @@
-import { Link, useLocation, Outlet } from "react-router";
+import { useState } from "react";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/react-app/lib/AuthContext";
 import { useAgentEnrollment } from "@/react-app/hooks/useAgentEnrollment";
-import { Logo } from "./Logo";
+import { ROLE_EMPLOYEE } from "@/react-app/constants/roles";
 import {
   LayoutDashboard,
   Radar,
@@ -18,14 +19,16 @@ import {
   ChevronDown,
   Users,
   PhoneOff,
-  Rocket,
   Briefcase,
+  CreditCard,
+  Menu,
+  X,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Activity,
 } from "lucide-react";
-import { Button } from "./ui/button";
-import { ROLE_EMPLOYEE } from "@/react-app/constants/roles";
-import { useState } from "react";
 
-// Define navigation sections with collapsible groups
 const navigationSections = [
   {
     id: "security",
@@ -39,9 +42,7 @@ const navigationSections = [
   {
     id: "client-area",
     label: "Client Area",
-    items: [
-      { icon: PhoneOff, label: "Missed Call Follow-up", path: "/dashboard/missed-calls" },
-    ],
+    items: [{ icon: PhoneOff, label: "Missed Calls", path: "/dashboard/missed-calls" }],
   },
   {
     id: "business",
@@ -50,43 +51,30 @@ const navigationSections = [
       { icon: Briefcase, label: "Operations", path: "/dashboard/operations" },
       { icon: Database, label: "Data Vault", path: "/dashboard/backups" },
       { icon: Lock, label: "Access Control", path: "/dashboard/access" },
-      { icon: Users, label: "Users Database", path: "/dashboard/users" },
+      { icon: Users, label: "Users", path: "/dashboard/users" },
     ],
   },
   {
     id: "education",
     label: "Education",
-    items: [
-      { icon: GraduationCap, label: "Academy", path: "/dashboard/training" },
-    ],
+    items: [{ icon: GraduationCap, label: "Academy", path: "/dashboard/training" }],
   },
   {
     id: "compliance",
     label: "Compliance",
-    items: [
-      { icon: FileCheck, label: "POPIA Compliance", path: "/dashboard/compliance" },
-    ],
+    items: [{ icon: FileCheck, label: "POPIA", path: "/dashboard/compliance" }],
   },
 ];
 
-const secondaryItems = [
-  { icon: Rocket, label: "Getting Started", path: "/dashboard/onboarding" },
+const accountItems = [
   { icon: Settings, label: "Settings", path: "/dashboard/settings" },
+  { icon: CreditCard, label: "Billing", path: "/dashboard/billing" },
 ];
 
 export function DashboardLayout() {
   const location = useLocation();
   const { admin, logout } = useAuth();
-
-  // Silently enrol the local desktop agent (Tauri only) once the user lands
-  // in the dashboard. No-ops in plain browsers.
-  useAgentEnrollment();
-
-  // Get role from admin
-  const role = admin?.role || "admin";
-  const isEmployee = role === ROLE_EMPLOYEE;
-
-  // State for collapsible sections (default all expanded)
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     security: true,
     "client-area": true,
@@ -95,11 +83,11 @@ export function DashboardLayout() {
     compliance: true,
   });
 
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
-  };
+  useAgentEnrollment();
 
-  // Employee allowed paths
+  const role = admin?.role || "admin";
+  const isEmployee = role === ROLE_EMPLOYEE;
+
   const employeeAllowedPaths = new Set([
     "/dashboard",
     "/dashboard/endpoints",
@@ -110,152 +98,197 @@ export function DashboardLayout() {
     "/dashboard/operations",
   ]);
 
-  // Filter sections and items based on role
   const filteredSections = navigationSections
     .map((section) => ({
       ...section,
-      items: isEmployee
-        ? section.items.filter((item) => employeeAllowedPaths.has(item.path))
-        : section.items,
+      items: isEmployee ? section.items.filter((item) => employeeAllowedPaths.has(item.path)) : section.items,
     }))
     .filter((section) => section.items.length > 0);
 
-  const userInitials = admin?.name
-    ? admin.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
-    : admin?.email?.slice(0, 2).toUpperCase() || "U";
+  const initials = admin?.name
+    ? admin.name
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "U";
+  const displayName = admin?.name?.split(" ")[0] || "User";
 
-  const userName = admin?.name || admin?.email?.split("@")[0] || "User";
-  const displayName = userName.split(" ")[0];
+  const isActive = (path: string) =>
+    path === "/dashboard" ? location.pathname === path : location.pathname.startsWith(path);
+
+  const sidebar = (
+    <div className="flex h-full flex-col">
+      <div className="border-b border-white/8 px-5 py-5">
+        <Link to="/dashboard" className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-300/20 bg-[linear-gradient(135deg,rgba(126,240,195,0.95),rgba(147,197,253,0.82))] text-slate-950 shadow-[0_18px_40px_-18px_rgba(126,240,195,0.55)]">
+            <ShieldCheck className="h-5 w-5" />
+          </div>
+          <div>
+            <span className="text-sm font-semibold tracking-[-0.02em] text-slate-100">
+              Nextera<span className="text-emerald-300">AI</span>
+            </span>
+            <p className="text-[10px] uppercase tracking-[0.35em] text-slate-500">Command portal</p>
+          </div>
+        </Link>
+      </div>
+
+      <div className="border-b border-white/6 px-5 py-4">
+        <div className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-3 py-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/8 bg-[radial-gradient(circle_at_top,rgba(126,240,195,0.14),rgba(7,10,17,0.96))] text-emerald-300">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.32em] text-slate-500">Live posture</p>
+            <p className="truncate text-sm font-medium text-slate-200">{displayName}</p>
+          </div>
+        </div>
+      </div>
+
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+        <Link
+          to="/dashboard"
+          onClick={() => setMobileOpen(false)}
+          className="group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm transition"
+          style={{
+            backgroundColor: isActive("/dashboard") ? "rgba(126,240,195,0.10)" : "transparent",
+            border: isActive("/dashboard") ? "1px solid rgba(126,240,195,0.18)" : "1px solid transparent",
+            color: isActive("/dashboard") ? "#E9FFF6" : "#A6B0C3",
+          }}
+        >
+          <LayoutDashboard className="h-4 w-4" />
+          <span className="font-medium">Dashboard</span>
+          <Activity className="ml-auto h-3.5 w-3.5 text-emerald-300 opacity-0 transition group-hover:opacity-100" />
+        </Link>
+
+        {filteredSections.map((section) => (
+          <div key={section.id} className="pt-2">
+            <button
+              onClick={() => setExpandedSections((prev) => ({ ...prev, [section.id]: !prev[section.id] }))}
+              className="flex w-full items-center justify-between px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.35em] text-slate-500 transition hover:text-slate-300"
+            >
+              <span>{section.label}</span>
+              {expandedSections[section.id] ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+            </button>
+            {expandedSections[section.id] && (
+              <div className="space-y-1 px-1">
+                {section.items.map((item) => {
+                  const active = isActive(item.path);
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm transition"
+                      style={{
+                        backgroundColor: active ? "rgba(126,240,195,0.10)" : "transparent",
+                        border: active ? "1px solid rgba(126,240,195,0.16)" : "1px solid transparent",
+                        color: active ? "#E9FFF6" : "#A6B0C3",
+                      }}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span className="font-medium">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+
+        <div className="mt-4 border-t border-white/8 pt-3">
+          <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.35em] text-slate-500">Account</p>
+          {accountItems.map((item) => {
+            const active = isActive(item.path);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm transition"
+                style={{
+                  backgroundColor: active ? "rgba(255,255,255,0.05)" : "transparent",
+                  border: active ? "1px solid rgba(255,255,255,0.08)" : "1px solid transparent",
+                  color: active ? "#E9FFF6" : "#A6B0C3",
+                }}
+              >
+                <item.icon className="h-4 w-4" />
+                <span className="font-medium">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+
+      <div className="border-t border-white/8 p-4">
+        <div className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] p-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(126,240,195,0.95),rgba(147,197,253,0.9))] text-xs font-semibold text-slate-950">
+            {initials}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-slate-100">{admin?.name || "User"}</p>
+            <p className="truncate text-xs text-slate-500">{admin?.email || ""}</p>
+          </div>
+          <button
+            onClick={() => logout()}
+            className="rounded-full border border-white/8 bg-white/[0.03] p-2 text-slate-400 transition hover:bg-white/10 hover:text-slate-100"
+            title="Sign out"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <aside className="w-64 border-r border-border bg-sidebar flex flex-col fixed h-full">
-        <div className="p-4 border-b border-sidebar-border">
-          <Link to="/dashboard">
-            <Logo />
-          </Link>
-        </div>
+    <div className="nx-dashboard-shell flex min-h-screen overflow-hidden text-slate-100">
+      <aside className="nx-dashboard-sidebar fixed inset-y-0 left-0 z-40 hidden w-72 lg:flex lg:flex-col">{sidebar}</aside>
 
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {/* Dashboard - always visible */}
-          <Link
-            to="/dashboard"
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
-              location.pathname === "/dashboard"
-                ? "bg-gradient-to-b from-indigo-900/80 via-primary/70 to-card/90 border border-primary/60 shadow-[0_12px_30px_-20px_rgba(15,23,42,0.8)] text-white"
-                : "text-sidebar-foreground/70 hover:text-white hover:bg-gradient-to-b hover:from-indigo-900/70 hover:via-primary/60 hover:to-card/90 hover:border hover:border-primary/60 hover:shadow-[0_12px_30px_-20px_rgba(15,23,42,0.8)]"
-            }`}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <aside className="nx-dashboard-sidebar relative h-full w-80 max-w-[88vw]">{sidebar}</aside>
+        </div>
+      )}
+
+      <div className="flex min-h-screen flex-1 flex-col lg:pl-72">
+        <header className="nx-dashboard-topbar sticky top-0 z-30 flex h-16 items-center gap-4 px-4 sm:px-6">
+          <button
+            className="rounded-full border border-white/8 bg-white/[0.03] p-2 text-slate-300 transition hover:bg-white/10 lg:hidden"
+            onClick={() => setMobileOpen((prev) => !prev)}
           >
-            <LayoutDashboard className={`w-4 h-4 ${location.pathname === "/dashboard" ? "text-primary" : ""}`} />
-            Dashboard
-            {location.pathname === "/dashboard" && <ChevronRight className="w-4 h-4 ml-auto" />}
-          </Link>
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
 
-          {/* Collapsible Sections */}
-          {filteredSections.map((section) => (
-            <div key={section.id} className="mt-2">
-              <button
-                onClick={() => toggleSection(section.id)}
-                className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-sidebar-foreground transition-colors"
-              >
-                <span>{section.label}</span>
-                {expandedSections[section.id] ? (
-                  <ChevronDown className="w-3 h-3" />
-                ) : (
-                  <ChevronRight className="w-3 h-3" />
-                )}
-              </button>
-              {expandedSections[section.id] && (
-                <div className="space-y-0.5 mt-1">
-                  {section.items.map((item) => {
-                    const isActive = location.pathname === item.path;
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
-                          isActive
-                            ? "bg-gradient-to-b from-indigo-900/80 via-primary/70 to-card/90 border border-primary/60 shadow-[0_12px_30px_-20px_rgba(15,23,42,0.8)] text-white"
-                            : "text-sidebar-foreground/70 hover:text-white hover:bg-gradient-to-b hover:from-indigo-900/70 hover:via-primary/60 hover:to-card/90 hover:border hover:border-primary/60 hover:shadow-[0_12px_30px_-20px_rgba(15,23,42,0.8)]"
-                        }`}
-                      >
-                        <item.icon className={`w-4 h-4 ${isActive ? "text-primary" : ""}`} />
-                        {item.label}
-                        {isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          ))}
-
-          {/* Account Section */}
-          <div className="mt-6">
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 py-2">
-              Account
-            </div>
-            {secondaryItems
-              .filter((item) => !(isEmployee && item.label === "Getting Started"))
-              .map((item) => {
-                const isActive = location.pathname === item.path;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                      isActive
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                    }`}
-                  >
-                    <item.icon className={`w-4 h-4 ${isActive ? "text-primary" : ""}`} />
-                    {item.label}
-                  </Link>
-                );
-              })}
+          <div className="hidden min-w-0 flex-1 items-center gap-3 rounded-full border border-white/8 bg-white/[0.03] px-4 py-2.5 md:flex">
+            <Search className="h-4 w-4 text-slate-500" />
+            <input
+              type="text"
+              placeholder="Search the dashboard"
+              className="w-full bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-500"
+            />
           </div>
-        </nav>
 
-        <div className="p-3 border-t border-sidebar-border">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-sidebar-accent/50">
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="text-sm font-medium text-primary">{userInitials}</span>
+          <div className="ml-auto flex items-center gap-3">
+            <button className="relative rounded-full border border-white/8 bg-white/[0.03] p-2.5 text-slate-300 transition hover:bg-white/10" title="Notifications">
+              <Bell className="h-4 w-4" />
+              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-emerald-300" />
+            </button>
+            <div className="hidden items-center gap-3 rounded-full border border-white/8 bg-white/[0.03] px-4 py-2 md:flex">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(135deg,rgba(126,240,195,0.95),rgba(147,197,253,0.9))] text-xs font-semibold text-slate-950">
+                {initials}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-100">{displayName}</p>
+                <p className="text-xs text-slate-500">Dashboard workspace</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{userName}</p>
-              <p className="text-xs text-muted-foreground">{admin?.email}</p>
-            </div>
-            <Button className="text-white flex items-center gap-2 bg-primary hover:bg-primary/90 transition-colors h-8 w-8" onClick={() => logout()} title="Sign out">
-              <LogOut className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <div className="flex-1 ml-64">
-        {/* Top bar */}
-        <header className="h-14 border-b border-border bg-background/80 backdrop-blur-sm flex items-center justify-between px-6 sticky top-0 z-10">
-          <div>
-            <h1 className="text-lg font-semibold">
-              Welcome back, {displayName}
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button className="text-white flex items-center gap-2 bg-destructive hover:bg-destructive/90 transition-colors relative" variant="ghost" size="icon">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
-            </Button>
-            <Button className="text-white flex items-center gap-2 bg-primary hover:bg-primary/90 transition-colors" variant="outline" size="sm">
-              Get Support
-            </Button>
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="p-6">
+        <main className="nx-dashboard-view flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>
