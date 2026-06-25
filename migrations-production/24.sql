@@ -1,0 +1,15 @@
+-- Production reconciliation no-op for nextera web migration history.
+--
+-- Historical migration apps/web/migrations/24.sql attempted:
+--   ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user';
+--
+-- Production database nextera already has:
+--   users.role TEXT NOT NULL DEFAULT 'admin'
+--
+-- This no-op exists only to reconcile D1 migration history after the
+-- production apply failed with "duplicate column name: role".
+--
+-- Do not change the users.role column, role defaults, constraints, or user
+-- rows in this reconciliation. Role default/constraint review is deferred to
+-- a separate security/product task.
+SELECT 1;

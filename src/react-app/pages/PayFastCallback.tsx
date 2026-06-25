@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+﻿import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card } from "@/react-app/components/ui/card";
 import { Button } from "@/react-app/components/ui/button";
 import { CheckCircle, Loader2, ArrowRight } from "lucide-react";

@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+﻿import { Link } from "react-router-dom";
 import { Card } from "@/react-app/components/ui/card";
 import { Button } from "@/react-app/components/ui/button";
 import { Badge } from "@/react-app/components/ui/badge";
@@ -85,7 +85,7 @@ export function DemoDashboard() {
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              The demo data shows a consent gap for the “Customer Feedback” form. Pair the compliance workflow with a
+              The demo data shows a consent gap for the â€œCustomer Feedbackâ€ form. Pair the compliance workflow with a
               consent capture change request to stay aligned with POPIA Condition 4.
             </p>
             <div className="flex items-center justify-between text-xs text-muted-foreground">

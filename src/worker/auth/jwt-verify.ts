@@ -9,8 +9,8 @@
  * flags.
  *
  * Source of truth for the claim shape:
- *   `g:\NexteraAI authentication service\src\worker\types.ts` -> JWTPayload
- *   `g:\NexteraAI authentication service\src\worker\auth\jwt.ts`
+ *   `g:\apps/auth-service\src\worker\types.ts` -> JWTPayload
+ *   `g:\apps/auth-service\src\worker\auth\jwt.ts`
  */
 
 export interface AuthServiceJWTClaims {

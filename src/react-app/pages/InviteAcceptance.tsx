@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router";
+﻿import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Card } from "@/react-app/components/ui/card";
 import { Button } from "@/react-app/components/ui/button";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
@@ -51,8 +51,8 @@ export function InviteAcceptance() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+    if (password.length < 12 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[^a-zA-Z0-9]/.test(password)) {
+      setError("Password must be at least 12 characters and include uppercase, lowercase, number, and special character.");
       return;
     }
     
@@ -185,7 +185,7 @@ export function InviteAcceptance() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min 8 characters"
+              placeholder="12+ chars with mixed case, number, symbol"
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#667eea] transition-colors"
               required
             />

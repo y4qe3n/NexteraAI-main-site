@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router";
+﻿import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/react-app/lib/AuthContext";
 import { Loader2, ShieldCheck } from "lucide-react";
 

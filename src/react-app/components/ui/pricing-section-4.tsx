@@ -7,62 +7,77 @@ const plans = [
   {
     id: "basic",
     name: "Basic",
-    description:
-      "Essential cybersecurity protection for small businesses and startups",
-    price: 1000,
-    yearlyPrice: 10800,
-    buttonText: "Get started",
+    description: "Essential cybersecurity for small teams (up to 10 devices)",
+    price: 2999,
+    yearlyPrice: 32389, // 10% discount
+    buttonText: "Start with Basic",
     buttonVariant: "outline" as const,
     includes: [
-      "Core security features:",
-      "Endpoint Shield",
-      "Email Guard",
-      "Access Control",
-      "POPIA Compliance Hub",
-      "24/7 Monitoring",
-      "WhatsApp Alerts",
-      "Monthly Reports",
+      "Up to 10 devices",
+      "Silent Windows agent",
+      "Real-time threat detection",
+      "Live dashboard",
+      "POPIA compliance toolkit",
+      "Encrypted backup vault (R2)",
+      "Email support (business hours)",
+      "R350/device overage",
     ],
   },
   {
     id: "pro",
     name: "Pro",
-    description:
-      "Best value for growing businesses that need advanced threat protection",
-    price: 2000,
-    yearlyPrice: 21600,
-    buttonText: "Get started",
+    description: "Growing SMEs that want total peace of mind (up to 25 devices)",
+    price: 3999,
+    yearlyPrice: 43189, // 10% discount
+    buttonText: "Get Pro",
     buttonVariant: "default" as const,
     popular: true,
     includes: [
-      "Everything in Basic, plus:",
-      "Threat Radar",
-      "Data Vault",
-      "Advanced Analytics",
-      "Priority Support",
-      "Custom Integrations",
-      "Audit Trail",
-      "Team Training",
+      "Up to 25 devices",
+      "Everything in Basic",
+      "Unlimited users",
+      "Instant alerts (webhook/email)",
+      "Forensic event timeline",
+      "API access",
+      "Priority 24/7 support",
+      "R200/device overage",
     ],
   },
   {
     id: "enterprise",
     name: "Enterprise",
-    description:
-      "Advanced plan with enhanced security and unlimited access for large teams",
-    price: 3000,
-    yearlyPrice: 32400,
-    buttonText: "Contact Sales",
+    description: "Unlimited devices for established businesses with compliance needs",
+    price: 5999,
+    yearlyPrice: 64789, // 10% discount
+    buttonText: "Get Enterprise",
     buttonVariant: "outline" as const,
     includes: [
-      "Everything in Pro, plus:",
-      "Multi-location Support",
-      "Custom Security Policies",
-      "Dedicated Account Manager",
-      "SLA Guarantee",
-      "White-label Options",
-      "API Access",
-      "Unlimited Users",
+      "Unlimited devices",
+      "Everything in Pro",
+      "Dedicated CS analyst",
+      "Custom compliance reports",
+      "Advanced threat hunting",
+      "SLA-backed response times",
+      "Dedicated success manager",
+    ],
+  },
+  {
+    id: "enterprise_custom",
+    name: "Enterprise Custom",
+    description: "50+ devices? Custom pricing with volume discounts",
+    price: null,
+    yearlyPrice: null,
+    buttonText: "Get custom quote",
+    buttonVariant: "outline" as const,
+    custom: true,
+    includes: [
+      "50+ devices (custom count)",
+      "Everything in Enterprise",
+      "Bespoke security policies",
+      "Custom integrations",
+      "Named account manager",
+      "Enterprise SLA",
+      "Volume-based pricing",
     ],
   },
 ];
@@ -134,14 +149,16 @@ export default function PricingSection4({ isYearly, onYearlyChange, onGetStarted
         }}
       />
 
-      <div className="grid md:grid-cols-3 max-w-5xl gap-4 py-6 mx-auto relative z-10">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 max-w-6xl gap-4 py-6 mx-auto relative z-10">
         {plans.map((plan) => (
           <Card
             key={plan.name}
             className={`relative text-white border-neutral-800 ${
               plan.popular
                 ? "bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 shadow-[0px_-13px_300px_0px_#6366f1] z-20"
-                : "bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 z-10"
+                : plan.custom
+                  ? "bg-gradient-to-r from-indigo-950 via-indigo-900 to-indigo-950 border-indigo-700 z-10"
+                  : "bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 z-10"
             }`}
           >
             <CardHeader className="text-left">
@@ -152,14 +169,25 @@ export default function PricingSection4({ isYearly, onYearlyChange, onGetStarted
                     Popular
                   </span>
                 )}
+                {plan.custom && (
+                  <span className="bg-indigo-500/20 text-indigo-300 text-xs px-2 py-1 rounded-full">
+                    Custom
+                  </span>
+                )}
               </div>
               <div className="flex items-baseline">
-                <span className="text-4xl font-semibold">
-                  R{(isYearly ? plan.yearlyPrice : plan.price).toLocaleString()}
-                </span>
-                <span className="text-gray-300 ml-1">
-                  /{isYearly ? "year" : "month"}
-                </span>
+                {plan.price ? (
+                  <>
+                    <span className="text-4xl font-semibold">
+                      R{(isYearly ? plan.yearlyPrice : plan.price)?.toLocaleString()}
+                    </span>
+                    <span className="text-gray-300 ml-1">
+                      /{isYearly ? "year" : "month"}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-3xl font-semibold text-indigo-300">Custom pricing</span>
+                )}
               </div>
               <p className="text-sm text-gray-300 mb-4">{plan.description}</p>
             </CardHeader>

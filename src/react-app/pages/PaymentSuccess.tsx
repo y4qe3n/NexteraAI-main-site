@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router";
-import { useSearchParams } from "react-router";
+﻿import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Card } from "@/react-app/components/ui/card";
 import { Button } from "@/react-app/components/ui/button";
 import { Check, ArrowRight } from "lucide-react";
@@ -130,17 +130,20 @@ export function PaymentSuccess() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const paymentId = searchParams.get("payment_id");
+  const planParam = searchParams.get("plan");
+  const billingParam = searchParams.get("billing");
   const [plan, setPlan] = useState<string | null>(null);
   const [billingPeriod, setBillingPeriod] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const confettiRef = useRef<{ launch: () => void }>(null);
+  const confettiRef = useRef<{ launch: () => void } | null>(null);
 
   useEffect(() => {
-    const savedPlan = sessionStorage.getItem("selectedPlan");
-    const savedBilling = sessionStorage.getItem("billingPeriod");
+    // Priority: URL params > sessionStorage
+    const savedPlan = planParam || sessionStorage.getItem("selectedPlan");
+    const savedBilling = billingParam || sessionStorage.getItem("billingPeriod");
     if (savedPlan) setPlan(savedPlan);
     if (savedBilling) setBillingPeriod(savedBilling);
-  }, []);
+  }, [planParam, billingParam]);
 
   useEffect(() => {
     setIsVisible(true);
@@ -160,9 +163,9 @@ export function PaymentSuccess() {
   };
 
   const getAmount = () => {
-    if (plan === "starter") return billingPeriod === "monthly" ? "R499/mo" : "R4,999/yr";
-    if (plan === "professional") return billingPeriod === "monthly" ? "R899/mo" : "R8,999/yr";
-    if (plan === "enterprise") return billingPeriod === "monthly" ? "R1,499/mo" : "R14,999/yr";
+    if (plan === "basic") return billingPeriod === "monthly" ? "R2,999/mo" : "R32,388/yr";
+    if (plan === "pro") return billingPeriod === "monthly" ? "R3,999/mo" : "R43,188/yr";
+    if (plan === "max" || plan === "enterprise") return billingPeriod === "monthly" ? "R5,999/mo" : "R61,188/yr";
     return "R0.00";
   };
 
@@ -273,6 +276,9 @@ export function PaymentSuccess() {
             <p className="text-xs text-center text-muted-foreground pt-2">
               A confirmation email has been sent to your registered email
               address
+            </p>
+            <p className="text-xs text-center text-muted-foreground/70 mt-1">
+              This is a paid controlled beta subscription. You'll receive manual onboarding and direct support, and you may cancel before your next billing cycle.
             </p>
           </div>
         </Card>

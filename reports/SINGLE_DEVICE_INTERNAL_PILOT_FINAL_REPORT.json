@@ -1,0 +1,109 @@
+﻿{
+    "timestamp":  "2026-06-24T19:15:25+02:00",
+    "active_monitoring_start":  "2026-06-22T23:07:37+02:00",
+    "total_active_monitoring_hours":  44.13,
+    "total_active_monitoring_human":  "1d 20h 7m",
+    "scope":  "one_owner_controlled_internal_machine",
+    "customer_rollout_approved":  false,
+    "recommendation":  "expand_to_second_internal_device",
+    "next_action":  "Install on one second internal owner-approved device only; keep warn-only/shadow and repeat monitoring",
+    "production_ready":  false,
+    "auto_block_enabled":  false,
+    "threat_protection_v1_mode":  "warn_only_shadow",
+    "desktop_runtime":  {
+                            "stable":  true,
+                            "process_running":  true,
+                            "pid":  35356,
+                            "process_responding":  true,
+                            "main_window_handle_present":  true,
+                            "crashes_or_errors":  "none_recorded",
+                            "auth_loop_or_session_corruption":  "none_recorded",
+                            "exe":  "F:\\NEXTERAAI\\apps\\desktop-agent\\src-tauri\\target\\release\\nextera-agent.exe",
+                            "msi":  "F:\\NEXTERAAI\\apps\\desktop-agent\\src-tauri\\target\\release\\bundle\\msi\\NexteraAI Agent_1.0.0_x64_en-US.msi",
+                            "rebuilt_in_final_review":  false
+                        },
+    "device_health_bridge":  {
+                                 "result":  "pass",
+                                 "stable":  true,
+                                 "cards_live":  [
+                                                    "agent_process",
+                                                    "backend_heartbeat",
+                                                    "last_scan",
+                                                    "cpu_usage",
+                                                    "memory_usage",
+                                                    "disk_usage",
+                                                    "operating_system",
+                                                    "signed_in_user",
+                                                    "file_shield_status_reason",
+                                                    "threat_engine_status_reason",
+                                                    "network_guard_status_reason",
+                                                    "backup_module_status_reason"
+                                                ],
+                                 "remaining_limitations":  [
+                                                               "per_module_heartbeat_timestamps_not_exported_yet"
+                                                           ],
+                                 "fake_healthy_modules":  false
+                             },
+    "heartbeat_backend":  {
+                              "result":  "pass",
+                              "d1_changed_db":  false,
+                              "latest_agent_id":  "nxagent_96a005fe4b637253d22f342203ae0706",
+                              "device_name":  "yaqeen",
+                              "status":  "active",
+                              "last_seen_at":  "2026-06-24T17:15:11.777Z",
+                              "safe_session_token_prefix":  "nxas_552ec7789c7c7",
+                              "full_token_visible":  false,
+                              "manual_dashboard_opened_in_final_review":  false
+                          },
+    "revoked_invite":  {
+                           "token_prefix":  "nxag_live_348dcc2e",
+                           "revoked":  true,
+                           "uses":  "0/1",
+                           "devices_from_revoked_invite":  0
+                       },
+    "silent_runtime":  {
+                           "result":  "pass",
+                           "monitor_duration":  "5_minutes",
+                           "samples":  247,
+                           "child_shell_process_observations":  7,
+                           "unique_child_shell_processes":  7,
+                           "child_shell_names":  [
+                                                     "NETSTAT.EXE",
+                                                     "powershell.exe"
+                                                 ],
+                           "child_processes_hidden_helper_mediated":  true,
+                           "visible_shell_windows":  0,
+                           "visible_powershell_recurrence":  false,
+                           "visible_cmd_recurrence":  false,
+                           "visible_pwsh_recurrence":  false,
+                           "visible_netstat_recurrence":  false,
+                           "visible_terminal_recurrence":  false
+                       },
+    "updater":  {
+                    "safety_result":  "pass",
+                    "plugin_initialized_without_pubkey":  false,
+                    "runtime_panic":  false,
+                    "fake_signing_key_present":  false,
+                    "private_signing_key_material_found":  false,
+                    "ui_blocked_pending_signing":  true,
+                    "production_ready_update_artifact":  false
+                },
+    "scan":  {
+                 "token_private_key_scan":  "pass",
+                 "bearer_tokens_found":  0,
+                 "private_key_blocks_found":  0,
+                 "full_live_agent_tokens_found":  0,
+                 "notes":  "Only safe revoked invite prefix/status references and signing workflow variable names were found."
+             },
+    "safety":  {
+                   "warn_only_shadow_preserved":  true,
+                   "auto_blocking_enabled":  false,
+                   "quarantine_delete_suppress_block_enabled":  false,
+                   "rollback_readiness":  "present",
+                   "raw_malware_used":  false,
+                   "retraining_performed":  false,
+                   "web_redeploy_performed":  false,
+                   "false_positives":  "none_recorded",
+                   "false_negatives":  "none_recorded"
+               }
+}

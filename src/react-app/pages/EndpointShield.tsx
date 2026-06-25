@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/react-app/components/ui/card";
 import { Button } from "@/react-app/components/ui/button";
 import {
@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/react-app/components/ui/input";
 import { Label } from "@/react-app/components/ui/label";
 import { useAccessControl } from "@/react-app/hooks/useAccessControl";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
 type Device = {
   id: number;
@@ -47,9 +47,9 @@ const OS_OPTIONS = [
 ];
 
 function formatDate(iso?: string) {
-  if (!iso) return "—";
+  if (!iso) return "â€”";
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "â€”";
   return d.toLocaleString();
 }
 
@@ -65,6 +65,7 @@ export function EndpointShieldPage() {
   const [osSelection, setOsSelection] = useState("Windows 11");
   const [customOs, setCustomOs] = useState("");
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [showDeploymentGuide, setShowDeploymentGuide] = useState(false);
 
   useEffect(() => {
     const fetchDevices = async () => {
@@ -198,9 +199,36 @@ export function EndpointShieldPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="text-white" onClick={() => window.open("https://docs.nexteraai.co.za/endpoint-deployment", "_blank")}>
+          <Button variant="outline" size="sm" className="text-white" onClick={() => setShowDeploymentGuide(true)}>
             Deployment Guide
           </Button>
+          <Dialog open={showDeploymentGuide} onOpenChange={setShowDeploymentGuide}>
+            <DialogContent className="max-w-xl rounded-2xl border border-white/10 bg-[#171318] p-6 text-white shadow-[0_25px_70px_rgba(12,17,43,0.7)]">
+              <DialogHeader className="mb-4">
+                <DialogTitle className="text-lg font-semibold text-white">
+                  Endpoint deployment guide
+                </DialogTitle>
+                <p className="text-sm text-slate-400">
+                  Use this checklist when enrolling front-desk laptops, office desktops, or servers into NexteraAI monitoring.
+                </p>
+              </DialogHeader>
+              <div className="space-y-3 text-sm text-slate-200">
+                {[
+                  "Create the device record here so ownership, OS, and device type are tracked.",
+                  "Install the NexteraAI endpoint agent on the machine and keep it online for first heartbeat.",
+                  "Confirm the device appears as active, then run Scan to refresh protection status.",
+                  "Use Isolate only for Pro accounts when a device needs to be contained during response.",
+                ].map((step, index) => (
+                  <div key={step} className="flex gap-3 rounded-xl border border-white/8 bg-white/[0.035] p-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-300 text-xs font-bold text-stone-950">
+                      {index + 1}
+                    </span>
+                    <p className="leading-6">{step}</p>
+                  </div>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
           <Dialog open={isAddingDevice} onOpenChange={setIsAddingDevice}>
             <DialogTrigger asChild>
               <Button size="sm" className="text-white">
@@ -214,7 +242,7 @@ export function EndpointShieldPage() {
                   Add New Device
                 </DialogTitle>
                 <p className="text-sm text-muted-foreground">
-                  Provide the device details and we’ll start protecting it immediately.
+                  Provide the device details and weâ€™ll start protecting it immediately.
                 </p>
               </DialogHeader>
               <div className="space-y-4 text-sm text-white">
@@ -373,8 +401,8 @@ export function EndpointShieldPage() {
                 devices.map((device) => (
                   <TableRow key={device.id}>
                     <TableCell className="font-medium">{device.name}</TableCell>
-                    <TableCell>{device.device_type || "—"}</TableCell>
-                    <TableCell>{device.os || "—"}</TableCell>
+                    <TableCell>{device.device_type || "â€”"}</TableCell>
+                    <TableCell>{device.os || "â€”"}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {formatDate(device.updated_at || device.created_at)}
                     </TableCell>

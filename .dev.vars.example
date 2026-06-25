@@ -1,9 +1,56 @@
 # Copy this file to .dev.vars and fill in your credentials.
 # .dev.vars is gitignored and used only for local development.
+# All values below use FREE sandbox/test credentials - no real money required.
 
+# =============================================================================
+# MOCHA USERS SERVICE (Optional - for OAuth integration)
+# =============================================================================
 MOCHA_USERS_SERVICE_API_URL=https://your-mocha-users-service-url
 MOCHA_USERS_SERVICE_API_KEY=your-mocha-users-service-api-key
 
-# Email OTP 2FA (Resend.com). Without RESEND_API_KEY, OTP codes are logged to console only.
+# =============================================================================
+# EMAIL SERVICE (Resend.com - 3,000 free emails/month)
+# Sign up at: https://resend.com
+# =============================================================================
 RESEND_API_KEY=re_xxxxxxxxxxxx
-OTP_EMAIL_FROM=no-reply@yourdomain.com
+OTP_EMAIL_FROM=no-reply@nexteraai.co.za
+
+# =============================================================================
+# PAYFAST PAYMENT GATEWAY (Sandbox Mode)
+# Sandbox URL: https://sandbox.payfast.co.za
+# 
+# IMPORTANT: Use these OFFICIAL PayFast sandbox credentials:
+# - Merchant ID: 10004002
+# - Merchant Key: q1cd2rdny4a53
+# - Passphrase: leave empty (not used in sandbox)
+#
+# These are PayFast's public test credentials that work without signup.
+# DO NOT use real merchant credentials here - they will fail in sandbox.
+# =============================================================================
+PAYFAST_MERCHANT_ID=10004002
+PAYFAST_MERCHANT_KEY=q1cd2rdny4a53
+PAYFAST_PASSPHRASE=
+PAYFAST_SANDBOX=true
+
+# =============================================================================
+# OZOW PAYMENT GATEWAY (Optional - for EFT payments)
+# Sign up at: https://ozow.com
+# =============================================================================
+OZOW_SITE_CODE=TEST
+OZOW_API_KEY=test
+OZOW_PRIVATE_KEY=test
+OZOW_IS_TEST=true
+
+# =============================================================================
+# AFRICA'S TALKING SMS (Optional - for SMS notifications)
+# Sign up at: https://africastalking.com
+# =============================================================================
+AT_API_KEY=test
+AT_USERNAME=sandbox
+AT_SENDER_ID=NexteraAI
+
+# =============================================================================
+# APPLICATION URLS (Local development)
+# =============================================================================
+APP_URL=http://localhost:8788
+AUTH_SERVICE_URL=http://localhost:8787

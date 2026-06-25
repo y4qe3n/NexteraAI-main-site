@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { demoSessionUser } from '@/react-app/lib/preview/demoSession';
+import { isDashboardPreviewMode } from '@/react-app/lib/preview/previewMode';
 
 interface AdminUser {
   id: string;
@@ -20,7 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 function normalizeRole(role?: string | null): string {
   if (!role) return 'admin';
   if (role === 'org-employee') return 'employee';
-  if (role === 'org-manager' || role === 'org-owner') return 'admin';
+  if (role === 'org-manager' || role === 'org-owner' || role === 'org_admin') return 'admin';
   return role;
 }
 
@@ -29,6 +31,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (isDashboardPreviewMode()) {
+      setAdmin(demoSessionUser);
+      setLoading(false);
+      return;
+    }
+
     const loadSession = async () => {
       try {
         const res = await fetch('/api/users/me', {
@@ -60,6 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
+    if (isDashboardPreviewMode()) {
+      setAdmin(demoSessionUser);
+      return;
+    }
+
     const res = await fetch('/api/auth/email-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -92,6 +105,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    if (isDashboardPreviewMode()) {
+      setAdmin(demoSessionUser);
+      return;
+    }
+
     await fetch('/api/logout', {
       credentials: 'include',
     }).catch(() => undefined);

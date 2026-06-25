@@ -10,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/react-app/components/ui/table";
-import { Select } from "@/react-app/components/ui/select";
 import {
   AlertTriangle,
   Loader2,
@@ -223,25 +222,27 @@ export function ThreatRadarPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
-          <Select
+          <select
             value={timeRange}
-            onValueChange={(v) => setTimeRange(v as TimeRange)}
+            onChange={(e) => setTimeRange(e.target.value as TimeRange)}
+            className="border rounded-md px-3 py-1.5 bg-background text-sm text-foreground"
           >
             <option value="today">Today</option>
             <option value="7d">Last 7 days</option>
             <option value="30d">Last 30 days</option>
             <option value="all">All time</option>
-          </Select>
-          <Select
+          </select>
+          <select
             value={severityFilter}
-            onValueChange={(v) => setSeverityFilter(v)}
+            onChange={(e) => setSeverityFilter(e.target.value)}
+            className="border rounded-md px-3 py-1.5 bg-background text-sm text-foreground"
           >
             <option value="all">All severities</option>
             <option value="critical">Critical</option>
             <option value="high">High</option>
             <option value="medium">Medium</option>
             <option value="low">Low</option>
-          </Select>
+          </select>
           <div className="flex items-center gap-2 border rounded-md px-3 py-1.5 bg-background">
             <Filter className="w-4 h-4 text-muted-foreground" />
             <input

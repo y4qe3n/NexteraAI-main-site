@@ -1,0 +1,167 @@
+
+
+--- PAGE 1 ---
+NexteraAI Security Academy Module 
+Module 2: Phishing Prevention , Spot & Stop Attacks Before They Hit 
+ 
+  
+
+
+--- PAGE 2 ---
+What Phishing Is and Why It’s the #1 Threat in SA 
+ 
+Phishing: The #1 Way Hackers Target SA Small Businesses in 2026 
+ 
+Phishing is when criminals trick you (or your staff) into clicking bad links, opening 
+attachments, or sharing info like passwords/OTPs via email, SMS, WhatsApp, or calls. 
+They pretend to be trusted sources (SARS, FNB, Takealot, your supplier) to steal money, 
+data, or lock your systems. 
+Why It's #1 in South Africa Right Now: 
+• Phishing makes up 45.7–52% of all cyber threats in SA (ESET H2 2025 Threat 
+Report) – far higher than the African (32.5%) or global average. 
+• Over 40% of South Africans were scammed in 2025, with many losing money 
+(Global Anti-Scam Alliance/State of Scams report). 
+• SA faces hundreds of phishing attempts per person yearly, often via 
+email/SMS spoofing trusted brands. 
+• Small businesses are easy targets: One click can drain accounts, expose 
+customer data (POPIA fines up to R10M), or shut you down for days/weeks. 
+• Common in Gauteng/Johannesburg due to high digital activity – scams spike 
+during tax season, holidays, or load-shedding confusion. 
+Real talk: Most breaches start with phishing. Stop it, and you block 80%+ of attacks. 
+
+
+--- PAGE 3 ---
+ 
+ 
+ 
+
+
+
+--- PAGE 4 ---
+Red Flags Checklist 
+ 
+Spot Phishing – Your Red Flags Checklist 
+ 
+Look for these warning signs – if you see 2+, it's likely fake! 
+• Urgent or threatening language — "Act now or account closes!" , "Immediate 
+payment required!" , "Your refund expires today!" 
+• Suspicious sender — From unknown/Gmail address (not official like 
+noreply@fnb.co.za), mismatched domain (e.g., fnb-support@fake.com). 
+• Bad links — Hover (don't click!) to see real URL – looks off (e.g., fnb.co-za.com, 
+tinyurl hiding bad site). 
+• Unexpected attachments — Random PDFs/Word docs (e.g., "Invoice.pdf.exe") 
+– never open if unasked. 
+• Generic greetings — "Dear Customer" instead of your name/business. 
+• Poor grammar/spelling — Typos, awkward phrasing (common in rushed 
+scams). 
+• Requests for OTPs, passwords, card details — Legit banks/SARS NEVER ask 
+via email/SMS. 
+Quick tip: Always verify independently – call official number from your records/website, 
+not the message. 
+ 
+
+
+--- PAGE 5 ---
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+--- PAGE 6 ---
+Real SA Examples with Explanations 
+ 
+Real SA Phishing Scams – See Them in Action 
+ 
+1. Fake SARS Refund/Settlement — Email: "SARS Refund Approved – Claim Now!" 
+or "Settlement Notification – Action Required!" with link/PDF to fake site. Why 
+dangerous: Steals bank details/ID. SARS NEVER emails links or asks for banking 
+info (official warning). 
+2. Takealot Parcel Notification — SMS/Email: "Your parcel delayed – update 
+delivery here" with link. Why dangerous: Leads to fake login stealing card info or 
+malware install. 
+3. Bank OTP Request (FNB/others) — SMS/Call: "Unusual activity – approve with 
+OTP" or "Confirm transaction. " Why dangerous: OTP = approval to transfer 
+money. FNB NEVER asks for OTP via unsolicited message. 
+4. Fake Invoice/Supplier Bill — Email from "supplier": "Overdue invoice – pay now" 
+with attachment/link. Why dangerous: Business Email Compromise – drains 
+account after fake payment change. 
+These hit small businesses weekly – one approval = big loss. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+--- PAGE 7 ---
+6 Practical Steps to Stay Safe 
+ 
+6 Easy Steps to Block Phishing Today 
+ 
+1. Hover over links (don't click) – Check real URL matches sender. 
+2. Never share OTPs/passwords — No legit request comes unsolicited. 
+3. Verify by calling official number — Use your saved contact/website, not the 
+message. 
+4. Forward suspicious messages — To your bank's fraud line (e.g., FNB 087 575 
+9404) or phishing@sars.gov.za. 
+5. Use email filters/spam blockers — Enable in Gmail/Outlook; consider tools for 
+auto-scan. 
+6. Run phishing tests — Free online simulators (e.g., Google/ Microsoft) or staff 
+quizzes monthly. 
+Bonus: Enable MFA on all accounts – adds huge protection. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+--- PAGE 8 ---
+What NexteraAI Email Guard Does Automatically 
+ 
+Let NexteraAI Email Guard Handle Phishing for You 
+ 
+NexteraAI Email Guard is built for SA small businesses – affordable, local support: 
+• Scans every email/SMS for phishing red flags (fake senders, bad links, urgent 
+tricks). 
+• Blocks malicious attachments/links before they reach your inbox. 
+• Flags SARS/FNB/Takealot spoofs using real-time SA threat intel. 
+• Auto-quarantines suspects + alerts you with "Why this is suspicious. " 
+• POPIA-friendly reporting + easy staff training integration. 
+• Works with Gmail, Outlook, WhatsApp Business – no IT expert needed. 
+Focus on your shop/salon – we stop the hooks. 
+ 
+
+
+
+--- PAGE 9 ---
+ 
+Quick Reference Card (Printable)  
+ 
+Printable Phishing Red Flags Quick Card  
+ 
+Quick Reference Card (Print & Pin Near Computer/Phone): 
+• Urgent threats? STOP . 
+• Weird sender/domain? DELETE. 
+• Hover link – mismatch? DELETE. 
+• Asking OTP/password? NEVER share. 
+• Unexpected attachment? DELETE. 
+• Verify independently – call official! 
+  

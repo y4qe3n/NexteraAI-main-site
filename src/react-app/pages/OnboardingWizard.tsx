@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
+﻿import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/react-app/components/ui/card";
 import { Button } from "@/react-app/components/ui/button";
 import { Input } from "@/react-app/components/ui/input";
@@ -29,7 +29,7 @@ import {
   BookOpen,
 } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -79,7 +79,7 @@ const INITIAL: FormData = {
   selected_plan: "pro",
 };
 
-// ─── Option lists ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Option lists â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const BUSINESS_TYPES = [
   "Retail",
@@ -97,7 +97,7 @@ const EMAIL_PROVIDERS = ["Microsoft 365", "Gmail / Google Workspace", "Zoho Mail
 const CLOUD_OPTIONS = ["Google Drive", "OneDrive", "Dropbox", "iCloud", "None"];
 const ANTIVIRUS_OPTIONS = ["None", "Windows Defender", "Avast", "Bitdefender", "Norton", "Other"];
 const MFA_OPTIONS = [
-  { value: "yes", label: "Yes – on all accounts" },
+  { value: "yes", label: "Yes â€“ on all accounts" },
   { value: "some", label: "On some accounts" },
   { value: "no", label: "No" },
 ];
@@ -130,7 +130,7 @@ const PLANS = [
   },
 ];
 
-// ─── Step indicator ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Step indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const STEPS = [
   { n: 1, icon: Building2, label: "Business" },
@@ -171,7 +171,7 @@ function StepBar({ current }: { current: Step }) {
   );
 }
 
-// ─── Reusable selectors ───────────────────────────────────────────────────────
+// â”€â”€â”€ Reusable selectors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function OptionButton({
   label,
@@ -197,7 +197,7 @@ function OptionButton({
   );
 }
 
-// ─── Steps ────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Steps â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function Step1({ data, set }: { data: FormData; set: (k: keyof FormData, v: any) => void }) {
   return (
@@ -289,7 +289,7 @@ function Step2({ data, set }: { data: FormData; set: (k: keyof FormData, v: any)
         <div className="space-y-1">
           <label className="text-sm font-medium flex items-center gap-1"><Monitor className="w-3 h-3" /> Number of Devices to Protect</label>
           <Input type="number" min="1" placeholder="e.g. 5" value={data.device_count} onChange={(e) => set("device_count", e.target.value)} />
-          <p className="text-xs text-muted-foreground">Laptops, desktops, phones – rough estimate</p>
+          <p className="text-xs text-muted-foreground">Laptops, desktops, phones â€“ rough estimate</p>
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">Existing Antivirus / Security</label>
@@ -356,8 +356,8 @@ function Step3({ data, set }: { data: FormData; set: (k: keyof FormData, v: any)
             <p className="text-sm font-medium">Missed Call Follow-up</p>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            We’ve paused the UI for this automation while we transition it to NexteraAI V2. The backend
-            automations and logs remain active, and we’ll restore the full setup experience once the
+            Weâ€™ve paused the UI for this automation while we transition it to NexteraAI V2. The backend
+            automations and logs remain active, and weâ€™ll restore the full setup experience once the
             new workflow ships.
           </p>
         </div>
@@ -532,7 +532,7 @@ function Step5({ data }: { data: FormData }) {
   );
 }
 
-// ─── Main wizard ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Main wizard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function OnboardingWizard() {
   const navigate = useNavigate();
@@ -678,7 +678,7 @@ export function OnboardingWizard() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground mt-4">
-          Step {step} of 5 · Your data is encrypted and never shared.
+          Step {step} of 5 Â· Your data is encrypted and never shared.
         </p>
       </div>
     </div>

@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
-import { Navigate } from "react-router";
+﻿import { ReactNode } from "react";
+import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/react-app/lib/AuthContext";
 import { ROLE_ADMIN } from "@/react-app/constants/roles";

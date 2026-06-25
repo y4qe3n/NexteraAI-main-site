@@ -1,553 +1,408 @@
-import { useEffect, useState } from "react";
-import { Card } from "@/react-app/components/ui/card";
-import { Button } from "@/react-app/components/ui/button";
+import { useEffect, useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  Download,
+  GraduationCap,
+  Layers3,
+  ListChecks,
+  Loader2,
+  ShieldAlert,
+  Sparkles,
+  Users,
+} from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { Badge } from "@/react-app/components/ui/badge";
-import { RadioGroup, RadioGroupItem } from "@/react-app/components/ui/radio-group";
-import { Label } from "@/react-app/components/ui/label";
-import { Loader2, GraduationCap, CheckCircle, FileText, X, Award, Users, TrendingUp } from "lucide-react";
+import { Button } from "@/react-app/components/ui/button";
+import { Progress } from "@/react-app/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/react-app/components/ui/tabs";
 import { useAuth } from "@/react-app/lib/AuthContext";
 import { ROLE_ADMIN } from "@/react-app/constants/roles";
+import { LessonPlayer } from "@/react-app/components/training/LessonPlayer";
+import { StaffTrainingProgress } from "@/react-app/components/training/StaffTrainingProgress";
+import { TrainingAssignmentModal } from "@/react-app/components/training/TrainingAssignmentModal";
+import { TrainingModuleCard } from "@/react-app/components/training/TrainingModuleCard";
+import { TrainingReports } from "@/react-app/components/training/TrainingReports";
+import { createTrainingAssignments, loadTrainingDashboardData, saveTrainingProgress, type TrainingDashboardData } from "@/react-app/training/trainingApi";
+import { passThreshold, trainingModules } from "@/react-app/training/trainingContent";
+import type { TrainingModule, TrainingProgress } from "@/react-app/training/trainingTypes";
 
-type Module = {
-  id: number;
-  title: string;
-  description: string;
-  duration: number;
-  progress: number;
-  status: string;
-};
+function pct(value: number) {
+  return `${Math.max(0, Math.min(100, Math.round(value)))}%`;
+}
 
-type EmployeeProgress = {
-  userId: number;
-  email: string;
-  fullName: string;
-  role: string;
-  moduleScores: Record<number, number>;
-  overallProgress: number;
-  completedModules: number;
-  lastActivity: string;
-};
+function formatRelative(value: string | null) {
+  if (!value) return "No activity yet";
+  const ms = Date.now() - new Date(value).getTime();
+  const minutes = Math.max(0, Math.floor(ms / 60000));
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
 
-type EmployeeUser = {
-  id: number;
-  email: string;
-  full_name?: string | null;
-  role: string;
-  last_login: string | null;
-};
+function statusFor(progress?: TrainingProgress) {
+  if (progress?.status === "completed") return "Completed";
+  if (progress?.status === "in_progress") return "In progress";
+  return "Not started";
+}
 
-type AcademyProgressEntry = {
-  userId: number;
-  moduleScores?: Record<number, number>;
-  overallProgress?: number;
-  completedModules?: number;
-  lastActivity?: string;
-};
+function AcademyMetric({
+  label,
+  value,
+  detail,
+  icon,
+}: {
+  label: string;
+  value: string | number;
+  detail: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0d0b12] p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.28em] text-[#8778AD]">{label}</p>
+          <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">{value}</p>
+        </div>
+        <div className="rounded-xl border border-[#8B5CF6]/18 bg-[#1A102B] p-3 text-[#C4B5FD]">{icon}</div>
+      </div>
+      <p className="mt-3 text-sm leading-6 text-[#A89CC8]">{detail}</p>
+    </div>
+  );
+}
 
-const FALLBACK_EMPLOYEES: EmployeeUser[] = [
-  { id: 1, email: "employee1@company.com", full_name: "John Doe", role: "employee", last_login: "2024-01-15T10:00:00Z" },
-  { id: 2, email: "employee2@company.com", full_name: "Jane Smith", role: "employee", last_login: "2024-01-16T11:00:00Z" },
-];
-
-const FALLBACK_PROGRESS: AcademyProgressEntry[] = [
-  { userId: 1, moduleScores: { 1: 100, 2: 80, 3: 0, 4: 0 }, overallProgress: 45, completedModules: 2, lastActivity: "2024-01-15" },
-  { userId: 2, moduleScores: { 1: 100, 2: 100, 3: 100, 4: 90 }, overallProgress: 97, completedModules: 4, lastActivity: "2024-01-16" },
-];
-
-const formatLastActivity = (value?: string | null) => (value ? new Date(value).toLocaleString() : "—");
-
-const buildEmployeeProgressList = (
-  users: EmployeeUser[],
-  progressEntries: AcademyProgressEntry[],
-  modules: Module[]
-): EmployeeProgress[] => {
-  const moduleIds = modules.length > 0 ? modules.map((mod) => mod.id) : Object.keys(MODULE_DURATIONS).map((id) => Number(id));
-  const defaultScores = moduleIds.reduce<Record<number, number>>((acc, id) => {
-    acc[id] = 0;
-    return acc;
-  }, {});
-
-  return users.map((user) => {
-    const progress = progressEntries.find((entry) => entry.userId === user.id);
-    const mergedScores = { ...defaultScores, ...(progress?.moduleScores || {}) };
-    const scoreValues = Object.values(mergedScores);
-    const overall = moduleIds.length > 0 ? Math.round(scoreValues.reduce((sum, value) => sum + value, 0) / moduleIds.length) : 0;
-    const completed = scoreValues.filter((score) => score >= 70).length;
-
-    return {
-      userId: user.id,
-      email: user.email,
-      fullName: user.full_name || user.email,
-      role: user.role,
-      moduleScores: mergedScores,
-      overallProgress: progress?.overallProgress ?? overall,
-      completedModules: progress?.completedModules ?? completed,
-      lastActivity: progress?.lastActivity || formatLastActivity(user.last_login),
-    };
-  });
-};
-
-type QuizQuestion = { id: number; question: string; options: string[]; correct: string };
-
-const MODULE_PDF_MAP: Record<number, string> = {
-  1: "/academy/NexteraAI-Academy-Module-1-Introduction-to-Cybersecurity.pdf",
-  2: "/academy/NexteraAI-Academy-Module-2-Phishing-Prevention.pdf",
-  3: "/academy/NexteraAI-Academy-Module-3-Password-Management.pdf",
-  4: "/academy/NexteraAI-Academy-Module-4-Data-Privacy-Essentials.pdf",
-};
-
-// Duration in minutes (reading time + test time estimate)
-const MODULE_DURATIONS: Record<number, number> = {
-  1: 25, // ~20 min reading + 5 min test (3 questions)
-  2: 35, // ~25 min reading + 10 min test (4 questions)
-  3: 35, // ~25 min reading + 10 min test (4 questions)
-  4: 30, // ~22 min reading + 8 min test (3 questions)
-};
-
-const MODULE_QUIZZES: Record<number, QuizQuestion[]> = {
-  1: [
-    { id: 1, question: "How many cyber attacks hit SA organisations per week on average in recent reports?", options: ["~500", "~2,100+", "~10,000"], correct: "1" },
-    { id: 2, question: "What does the 'A' in CIA Triad stand for?", options: ["Authentication", "Availability", "Access"], correct: "1" },
-    { id: 3, question: "Which is the #1 quick action to take today?", options: ["Buy expensive firewall", "Enable MFA", "Ignore updates"], correct: "1" },
-  ],
-  2: [
-    { id: 1, question: "Phishing is the top threat in SA because it makes up what % of attacks?", options: ["10%", "45%+", "5%"], correct: "1" },
-    { id: 2, question: "Real SARS/FNB will NEVER ask for?", options: ["Your name", "OTP via SMS", "Feedback"], correct: "1" },
-    { id: 3, question: "Best first step on a suspicious link?", options: ["Click to check", "Hover to see URL", "Forward to friend"], correct: "1" },
-    { id: 4, question: "If in doubt, forward to?", options: ["The sender", "phishing@sars.gov.za or bank fraud line", "Ignore"], correct: "1" },
-  ],
-  3: [
-    { id: 1, question: "What % of breaches start with stolen/compromised credentials (Verizon 2025)?", options: ["5%", "22%", "50%"], correct: "1" },
-    { id: 2, question: "Modern best practice: Length or complexity first?", options: ["Complexity", "Length (12\u201316+ chars)", "Change every month"], correct: "1" },
-    { id: 3, question: "Best free password manager for small businesses?", options: ["Sticky notes", "Bitwarden", "Reuse same one"], correct: "1" },
-    { id: 4, question: "When to force a password change?", options: ["Every 90 days", "Only if breached", "Never"], correct: "1" },
-  ],
-  4: [
-    { id: 1, question: "What's the max fine under POPIA?", options: ["R1 million", "R10 million", "No fines"], correct: "1" },
-    { id: 2, question: "How many conditions for lawful processing?", options: ["5", "8", "10"], correct: "1" },
-    { id: 3, question: "First step for most small businesses?", options: ["Ignore it", "Appoint Information Officer + add privacy notice", "Hire lawyer"], correct: "1" },
-  ],
-};
+function TrainingEmptyState({ onAssign }: { onAssign: () => void }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-[#8B5CF6]/20 bg-[#0d0b12] p-8 text-center">
+      <GraduationCap className="mx-auto h-9 w-9 text-[#C4B5FD]" />
+      <h3 className="mt-4 text-lg font-semibold text-white">No training assigned yet.</h3>
+      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[#A89CC8]">
+        Start with Phishing Basics for your organisation, then add POPIA Awareness and Password Safety as staff complete the first module.
+      </p>
+      <Button className="mt-5 bg-[#6D28D9] text-white hover:bg-[#8B5CF6]" onClick={onAssign}>
+        Assign training
+      </Button>
+    </div>
+  );
+}
 
 export function AcademyPage() {
   const { admin } = useAuth();
-  const userRole = admin?.role || ROLE_ADMIN;
-  const isAdmin = userRole === ROLE_ADMIN;
-  
-  const [modules, setModules] = useState<Module[]>([]);
+  const location = useLocation();
+  const isAdmin = (admin?.role || ROLE_ADMIN) === ROLE_ADMIN;
+  const [data, setData] = useState<TrainingDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedModule, setSelectedModule] = useState<Module | null>(null);
-  const [showPDF, setShowPDF] = useState(false);
-  const [showTest, setShowTest] = useState(false);
-  const [testAnswers, setTestAnswers] = useState<Record<number, string>>({});
-  const [testScore, setTestScore] = useState<number | null>(null);
-  const [moduleScores, setModuleScores] = useState<Record<number, number>>({});
-  
-  // Admin view states
-  const [employeeProgress, setEmployeeProgress] = useState<EmployeeProgress[]>([]);
-  const [employeeUsers, setEmployeeUsers] = useState<EmployeeUser[]>(FALLBACK_EMPLOYEES);
-  const [adminLoading, setAdminLoading] = useState(false);
+  const [selectedModule, setSelectedModule] = useState<TrainingModule | null>(null);
+  const [assignmentOpen, setAssignmentOpen] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const defaultTab = location.pathname.endsWith("/modules")
+    ? "library"
+    : location.pathname.endsWith("/reports")
+      ? "reports"
+      : "overview";
+  const [activeTab, setActiveTab] = useState(defaultTab);
 
-  useEffect(() => {
-    // Load saved scores from localStorage
-    const savedScores = localStorage.getItem('academy_module_scores');
-    if (savedScores) {
-      setModuleScores(JSON.parse(savedScores));
-    }
+  const progressByModule = useMemo(() => {
+    const map = new Map<string, TrainingProgress>();
+    (data?.progress || []).forEach((entry) => map.set(entry.moduleId, entry));
+    return map;
+  }, [data?.progress]);
+
+  const recommendedModules = useMemo(() => {
+    const priorities = ["mod_phishing_basics", "mod_alert_response", "mod_popia_awareness"];
+    return priorities
+      .map((id) => trainingModules.find((module) => module.id === id))
+      .filter((module): module is TrainingModule => Boolean(module));
   }, []);
 
+  const nextModule = useMemo(() => {
+    return recommendedModules.find((module) => progressByModule.get(module.id)?.status !== "completed") || trainingModules[0];
+  }, [progressByModule, recommendedModules]);
+
+  const completedCount = data?.progress.filter((entry) => entry.status === "completed").length || 0;
+  const completionRate = data?.report.completionRate ?? 0;
+  const staffCount = data?.staff.length || (admin ? 1 : 0);
+  const overdueCount = data?.report.overdueCount ?? 0;
+  const averageQuizScore = data?.report.averageQuizScore ?? 0;
+
+  const refresh = async () => {
+    setLoading(true);
+    const loaded = await loadTrainingDashboardData(isAdmin);
+    setData(loaded);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchModules = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const res = await fetch("/api/training-modules", { credentials: "include" });
-        if (!res.ok) throw new Error("Failed to load training modules");
-        const data = await res.json();
-        setModules(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
-      } finally {
-        setLoading(false);
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
+
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
+
+  const handleSaveProgress = async (module: TrainingModule, input: { lessonProgress: Record<string, boolean>; quizScore: number | null; status: string }) => {
+    setSaving(true);
+    try {
+      if (data?.apiState.usingFallback) {
+        const updated: TrainingProgress = {
+          id: `fallback-progress-${module.id}`,
+          userId: admin?.id || "local-current-user",
+          moduleId: module.id,
+          lessonProgress: input.lessonProgress,
+          quizScore: input.quizScore,
+          status: input.status === "completed" ? "completed" : "in_progress",
+          lastActivityAt: new Date().toISOString(),
+          completedAt: input.status === "completed" ? new Date().toISOString() : null,
+        };
+        setData((current) => {
+          if (!current) return current;
+          const nextProgress = current.progress.filter((entry) => entry.moduleId !== module.id).concat(updated);
+          return { ...current, progress: nextProgress };
+        });
+        setNotice("Progress saved locally for this session because the training database tables are not available.");
+        return;
       }
-    };
-    fetchModules();
-  }, []);
+      await saveTrainingProgress({ moduleId: module.id, ...input });
+      setNotice("Progress saved.");
+      await refresh();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Unable to save progress.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
-  // Fetch employee progress for admin view
-  useEffect(() => {
-    if (!isAdmin) {
-      setEmployeeProgress([]);
+  const handleAssign = async (input: { userIds: string[]; moduleIds: string[]; dueDate: string | null; reminderEnabled: boolean }) => {
+    if (data?.apiState.usingFallback) {
+      setNotice("Assignment flow is visible, but database-backed assignments require migration 29.");
       return;
     }
-
-    const fetchAdminData = async () => {
-      try {
-        setAdminLoading(true);
-        const [usersRes, progressRes] = await Promise.all([
-          fetch("/api/admin/users?role=employee&limit=100", { credentials: "include" }),
-          fetch("/api/admin/academy-progress", { credentials: "include" }),
-        ]);
-
-        let users: EmployeeUser[] = FALLBACK_EMPLOYEES;
-        let progressEntries: AcademyProgressEntry[] = FALLBACK_PROGRESS;
-
-        if (usersRes.ok) {
-          const data = await usersRes.json();
-          users = data.users || FALLBACK_EMPLOYEES;
-        }
-
-        if (progressRes.ok) {
-          const data = await progressRes.json();
-          progressEntries = data.progress || FALLBACK_PROGRESS;
-        }
-
-        setEmployeeUsers(users);
-        setEmployeeProgress(buildEmployeeProgressList(users, progressEntries, modules));
-      } catch (err) {
-        setEmployeeUsers(FALLBACK_EMPLOYEES);
-        setEmployeeProgress(buildEmployeeProgressList(FALLBACK_EMPLOYEES, FALLBACK_PROGRESS, modules));
-      } finally {
-        setAdminLoading(false);
-      }
-    };
-
-    fetchAdminData();
-  }, [isAdmin, modules]);
-
-
-  // Calculate progress based on test scores (score is the progress percentage)
-  const overallProgress = modules.length > 0 
-    ? Math.round(modules.reduce((sum, m) => sum + (moduleScores[m.id] || 0), 0) / modules.length) 
-    : 0;
-  // A module is considered completed if test score >= 70%
-  const completedModules = modules.filter(m => (moduleScores[m.id] || 0) >= 70).length;
+    await createTrainingAssignments(input);
+    setNotice(input.reminderEnabled ? "Training assigned. Reminder request recorded; email delivery is not connected here." : "Training assigned.");
+    await refresh();
+  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      <div className="mx-auto flex min-h-[55vh] max-w-6xl items-center justify-center px-4 py-10">
+        <div className="flex items-center gap-3 rounded-full border border-[#8B5CF6]/12 bg-[#0c0a11] px-5 py-3 text-sm text-[#A89CC8]">
+          <Loader2 className="h-4 w-4 animate-spin text-[#C4B5FD]" />
+          Loading Security Academy
+        </div>
       </div>
     );
   }
 
-  if (error) {
+  if (selectedModule) {
     return (
-      <Card className="p-6">
-        <div className="flex items-center gap-3 text-destructive">
-          <GraduationCap className="w-6 h-6" />
-          <div>
-            <p className="font-medium">Failed to load academy content</p>
-            <p className="text-sm text-muted-foreground">{error}</p>
-          </div>
-        </div>
-      </Card>
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <LessonPlayer
+          module={selectedModule}
+          progress={progressByModule.get(selectedModule.id)}
+          saving={saving}
+          onBack={() => setSelectedModule(null)}
+          onSave={(input) => handleSaveProgress(selectedModule, input)}
+        />
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold text-white">Security Academy</h2>
-          <p className="text-sm text-muted-foreground">
-            Learn best practices for cybersecurity and compliance.
-          </p>
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="rounded-[2rem] border border-[#8B5CF6]/12 bg-[linear-gradient(180deg,rgba(13,11,18,0.99),rgba(5,4,10,0.99))] p-6 shadow-[0_35px_90px_-45px_rgba(124,58,237,0.55)]">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+          <div className="max-w-3xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-[11px] uppercase tracking-[0.35em] text-[#8778AD]">Customer dashboard</p>
+              <Badge className="border-[#C4B5FD]/20 bg-[#8B5CF6]/16 text-[#E9D5FF]">Security Academy</Badge>
+            </div>
+            <h1 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-white sm:text-4xl">
+              Security Academy
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#A89CC8] sm:text-base">
+              Train your team to recognise cyber risks before they become incidents.
+            </p>
+          </div>
+
+          <div className="grid min-w-0 gap-3 sm:grid-cols-3 xl:min-w-[520px]">
+            <div className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0a0810] p-4">
+              <p className="text-[11px] uppercase tracking-[0.26em] text-[#8778AD]">Readiness</p>
+              <p className="mt-2 text-3xl font-semibold text-white">{pct(completionRate)}</p>
+            </div>
+            <div className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0a0810] p-4">
+              <p className="text-[11px] uppercase tracking-[0.26em] text-[#8778AD]">Staff</p>
+              <p className="mt-2 text-3xl font-semibold text-white">{staffCount}</p>
+            </div>
+            <div className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0a0810] p-4">
+              <p className="text-[11px] uppercase tracking-[0.26em] text-[#8778AD]">Overdue</p>
+              <p className="mt-2 text-3xl font-semibold text-white">{overdueCount}</p>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          {/* View Certificates button removed */}
+
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <Button className="bg-[#6D28D9] text-white hover:bg-[#8B5CF6]" onClick={() => setAssignmentOpen(true)}>
+            <Users className="mr-2 h-4 w-4" />
+            Assign training
+          </Button>
+          <Button variant="outline" className="border-[#8B5CF6]/16 bg-[#0b0910] text-[#E9D5FF]" onClick={() => setSelectedModule(nextModule)}>
+            <BookOpen className="mr-2 h-4 w-4" />
+            Start next lesson
+          </Button>
+          <Button asChild variant="outline" className="border-[#8B5CF6]/16 bg-[#0b0910] text-[#E9D5FF]">
+            <a href="/api/training/reports/export.csv" download>
+              <Download className="mr-2 h-4 w-4" />
+              Download report
+            </a>
+          </Button>
         </div>
+
+        {(notice || data?.apiState.usingFallback) && (
+          <div className="mt-5 rounded-2xl border border-amber-300/18 bg-amber-400/8 p-4 text-sm leading-6 text-amber-100">
+            {notice || `Training API fallback active: ${data?.apiState.fallbackReason}. Apply migration 29 to enable database-backed assignments and progress.`}
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4 flex items-center justify-between relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent pointer-events-none" />
-          <div className="relative z-10">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Overall Progress
-            </p>
-            <p className="text-2xl font-semibold mt-1">{overallProgress}%</p>
-          </div>
-          <GraduationCap className="w-6 h-6 text-primary relative z-10" />
-        </Card>
-        <Card className="p-4 flex items-center justify-between relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
-          <div className="relative z-10">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Completed Modules
-            </p>
-            <p className="text-2xl font-semibold mt-1">{completedModules} / {modules.length}</p>
-          </div>
-          <CheckCircle className="w-6 h-6 text-emerald-400 relative z-10" />
-        </Card>
-        <Card className="p-4 flex items-center justify-between relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent pointer-events-none" />
-          <div className="relative z-10">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Estimated Time Left
-            </p>
-            <p className="text-2xl font-semibold mt-1">
-              {Math.round(modules.reduce((sum, m) => sum + ((MODULE_DURATIONS[m.id] || 30) * (100 - (moduleScores[m.id] || 0)) / 100), 0))} min
-            </p>
-          </div>
-          <GraduationCap className="w-6 h-6 text-primary relative z-10" />
-        </Card>
+      <div className="mt-6 grid gap-4 md:grid-cols-4">
+        <AcademyMetric label="Completion rate" value={pct(completionRate)} detail={`${completedCount} saved completions across available modules.`} icon={<CheckCircle2 className="h-5 w-5" />} />
+        <AcademyMetric label="Staff enrolled" value={staffCount} detail="Organisation members visible to this dashboard role." icon={<Users className="h-5 w-5" />} />
+        <AcademyMetric label="Overdue lessons" value={overdueCount} detail="Modules past due date need follow-up." icon={<Clock className="h-5 w-5" />} />
+        <AcademyMetric label="Quiz average" value={pct(averageQuizScore)} detail={`Pass threshold is ${passThreshold}%.`} icon={<ListChecks className="h-5 w-5" />} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {modules.map((module) => {
-          const score = moduleScores[module.id] || 0;
-          const isCompleted = score >= 70;
-          const isStarted = score > 0;
-          return (
-          <Card key={module.id} className="p-4 flex flex-col gap-3 relative overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all">
-            <div className={`absolute inset-0 bg-gradient-to-br ${isCompleted ? 'from-emerald-500/10' : isStarted ? 'from-amber-500/10' : 'from-primary/5'} via-transparent to-transparent pointer-events-none`} />
-            <div className="flex items-start justify-between gap-3 relative z-10">
-              <div>
-                <h3 className="font-semibold text-lg">{module.title}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{module.description}</p>
-              </div>
-              <Badge
-                variant="outline"
-                className={
-                  isCompleted
-                    ? "border-emerald-500/40 text-emerald-400"
-                    : isStarted
-                    ? "border-amber-500/40 text-amber-400"
-                    : "border-muted-foreground/40 text-muted-foreground"
-                }
-              >
-                {isCompleted ? "Completed" : isStarted ? "In Progress" : "Not Started"}
-              </Badge>
-            </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+        <TabsList className="flex h-auto w-full flex-wrap justify-start rounded-2xl border border-[#8B5CF6]/12 bg-[#0d0b12] p-1">
+          <TabsTrigger value="overview" className="rounded-xl px-4 py-2">Overview</TabsTrigger>
+          <TabsTrigger value="library" className="rounded-xl px-4 py-2">Modules</TabsTrigger>
+          <TabsTrigger value="staff" className="rounded-xl px-4 py-2">Staff progress</TabsTrigger>
+          <TabsTrigger value="reports" className="rounded-xl px-4 py-2">Reports</TabsTrigger>
+        </TabsList>
 
-            <div className="flex items-center justify-between text-sm text-muted-foreground relative z-10">
-              <span>Duration: {MODULE_DURATIONS[module.id] || 30} min</span>
-              <span>Best Score: {score}%</span>
-            </div>
-
-            <div className="w-full h-2 bg-secondary rounded-full overflow-hidden relative z-10">
-              <div
-                className={`h-full transition-all duration-300 ease-out ${isCompleted ? 'bg-emerald-500' : 'bg-primary'}`}
-                style={{ width: `${score}%` }}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 relative z-10">
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-white"
-                onClick={() => {
-                  setSelectedModule(module);
-                  setShowPDF(true);
-                  setShowTest(false);
-                }}
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Read PDF
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-white"
-                onClick={() => {
-                  setSelectedModule(module);
-                  setShowTest(true);
-                  setShowPDF(false);
-                  setTestScore(null);
-                  setTestAnswers({});
-                }}
-              >
-                <Award className="w-4 h-4 mr-2" />
-                Take Test
-              </Button>
-            </div>
-          </Card>
-        );
-      })}
-      </div>
-
-      {/* Admin View - Employee Progress Overview */}
-      {isAdmin && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Users className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold text-white">Employee Progress Overview</h3>
-            <span className="text-xs text-muted-foreground">{employeeUsers.length} tracked employees</span>
-          </div>
-          
-          {adminLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : employeeProgress.length === 0 ? (
-            <Card className="p-6 text-center text-muted-foreground">
-              No employee progress data available
-            </Card>
-          ) : (
-            <div className="grid gap-4">
-              {employeeProgress.map((employee) => (
-                <Card key={employee.userId} className="p-4 relative overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${employee.overallProgress >= 70 ? 'from-emerald-500/10' : employee.overallProgress > 0 ? 'from-amber-500/10' : 'from-primary/5'} via-transparent to-transparent pointer-events-none`} />
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-                    <div className="flex-1">
-                      <div className="flex flex-col gap-1">
-                        <h4 className="font-semibold text-white">{employee.fullName}</h4>
-                        <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
-                          <Badge variant="outline" className="text-xs text-muted-foreground">{employee.email}</Badge>
-                          <span className="capitalize">{employee.role.replace("ROLE_", "")}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-xs text-muted-foreground">Overall Progress</p>
-                        <p className="text-xl font-semibold">{employee.overallProgress}%</p>
-                      </div>
-                      <TrendingUp className={`w-6 h-6 ${employee.overallProgress >= 70 ? 'text-emerald-400' : 'text-amber-400'}`} />
-                    </div>
+        <TabsContent value="overview" className="mt-5">
+          <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+            <section className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0d0b12] p-5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] text-[#8778AD]">
+                    <Sparkles className="h-4 w-4" />
+                    Recommended next action
                   </div>
-                  
-                  {/* Module scores breakdown */}
-                  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {modules.map((mod) => {
-                      const score = employee.moduleScores[mod.id] || 0;
-                      return (
-                        <div key={mod.id} className="bg-muted/30 rounded p-2">
-                          <p className="text-xs text-muted-foreground truncate">{mod.title}</p>
-                          <p className={`text-sm font-medium ${score >= 70 ? 'text-emerald-400' : score > 0 ? 'text-amber-400' : 'text-muted-foreground'}`}>
-                            {score}%
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* PDF Viewer Modal */}
-      {showPDF && selectedModule && (
-        <Card className="fixed inset-4 z-50 p-4 overflow-hidden flex flex-col bg-background">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">{selectedModule.title} - Reading Material</h3>
-            <Button variant="ghost" size="sm" onClick={() => setShowPDF(false)}>
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-          {MODULE_PDF_MAP[selectedModule.id] ? (
-            <iframe
-              src={MODULE_PDF_MAP[selectedModule.id]}
-              className="flex-1 w-full rounded border border-border"
-              title={selectedModule.title}
-            />
-          ) : (
-            <div className="flex-1 bg-muted/30 rounded flex items-center justify-center">
-              <div className="text-center">
-                <FileText className="w-16 h-16 mx-auto mb-4 text-primary" />
-                <p className="text-lg font-medium">PDF not available</p>
-              </div>
-            </div>
-          )}
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setShowPDF(false)}>Close</Button>
-            <Button onClick={() => {
-              setShowPDF(false);
-              setShowTest(true);
-              setTestScore(null);
-              setTestAnswers({});
-            }}>Take Test</Button>
-          </div>
-        </Card>
-      )}
-
-      {/* Test Modal */}
-      {showTest && selectedModule && (() => {
-        const questions = MODULE_QUIZZES[selectedModule.id] || [];
-        const totalQ = questions.length;
-        return (
-        <Card className="fixed inset-4 z-50 p-4 overflow-hidden flex flex-col bg-background">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">{selectedModule.title} - Assessment</h3>
-            <Button variant="ghost" size="sm" onClick={() => setShowTest(false)}>
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            {testScore !== null ? (
-              <div className="text-center py-8">
-                <Award className={`w-16 h-16 mx-auto mb-4 ${testScore >= 70 ? 'text-emerald-400' : 'text-amber-400'}`} />
-                <p className="text-2xl font-bold">Score: {testScore}%</p>
-                <p className="text-muted-foreground mt-2">
-                  {testScore >= 70 ? 'Congratulations! You passed!' : 'Review the material and try again.'}
-                </p>
-                <div className="flex justify-center gap-2 mt-4">
-                  <Button variant="outline" onClick={() => setShowTest(false)}>Close</Button>
-                  {testScore < 70 && (
-                    <Button onClick={() => {
-                      setTestScore(null);
-                      setTestAnswers({});
-                    }}>Retry</Button>
-                  )}
+                  <h2 className="mt-2 text-xl font-semibold text-white">{nextModule.title}</h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-[#A89CC8]">{nextModule.description}</p>
                 </div>
+                <Button className="hidden bg-[#6D28D9] text-white hover:bg-[#8B5CF6] sm:inline-flex" onClick={() => setSelectedModule(nextModule)}>
+                  Continue
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
               </div>
-            ) : (
-              <div className="space-y-6">
-                {questions.map((q, idx) => (
-                  <div key={q.id} className="p-4 bg-muted/30 rounded">
-                    <p className="font-medium mb-3">{idx + 1}. {q.question}</p>
-                    <RadioGroup
-                      value={testAnswers[q.id]}
-                      onValueChange={(v) => setTestAnswers({...testAnswers, [q.id]: v})}
-                    >
-                      {q.options.map((opt, optIdx) => (
-                        <div key={optIdx} className="flex items-center gap-2 py-1">
-                          <RadioGroupItem value={String(optIdx)} id={`q${selectedModule.id}-${q.id}-opt${optIdx}`} />
-                          <Label htmlFor={`q${selectedModule.id}-${q.id}-opt${optIdx}`} className="cursor-pointer">{opt}</Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
+              <div className="mt-5 grid gap-3 md:grid-cols-3">
+                {recommendedModules.map((module) => (
+                  <div key={module.id} className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0b0910] p-4">
+                    <p className="text-sm font-semibold text-white">{module.title}</p>
+                    <p className="mt-2 text-xs leading-5 text-[#A89CC8]">{statusFor(progressByModule.get(module.id))}</p>
+                    <Progress value={progressByModule.get(module.id)?.status === "completed" ? 100 : progressByModule.get(module.id) ? 45 : 0} className="mt-3 h-2 bg-white/6 [&>div]:bg-gradient-to-r [&>div]:from-[#6D28D9] [&>div]:to-[#C4B5FD]" />
                   </div>
                 ))}
-                {totalQ === 0 && (
-                  <p className="text-center text-muted-foreground">No quiz available for this module yet.</p>
-                )}
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setShowTest(false)}>Cancel</Button>
-                  <Button
-                    onClick={() => {
-                      let correct = 0;
-                      questions.forEach((q) => {
-                        if (testAnswers[q.id] === q.correct) correct++;
-                      });
-                      const score = totalQ > 0 ? Math.round((correct / totalQ) * 100) : 0;
-                      setTestScore(score);
-                      // Save score to moduleScores (keep highest score)
-                      if (selectedModule) {
-                        const currentScore = moduleScores[selectedModule.id] || 0;
-                        const newScore = Math.max(currentScore, score);
-                        const updatedScores = { ...moduleScores, [selectedModule.id]: newScore };
-                        setModuleScores(updatedScores);
-                        localStorage.setItem('academy_module_scores', JSON.stringify(updatedScores));
-                      }
-                    }}
-                    disabled={Object.keys(testAnswers).length < totalQ}
-                  >
-                    Submit Test
-                  </Button>
-                </div>
               </div>
-            )}
+            </section>
+
+            <section className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0d0b12] p-5">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] text-[#8778AD]">
+                <ShieldAlert className="h-4 w-4" />
+                Risk topics needing attention
+              </div>
+              <div className="mt-4 space-y-3">
+                {["Phishing", "POPIA", "Suspicious attachments"].map((topic) => (
+                  <div key={topic} className="flex items-center justify-between rounded-xl border border-[#8B5CF6]/12 bg-[#0b0910] p-3">
+                    <span className="text-sm text-white">{topic}</span>
+                    <Badge variant="outline" className="border-amber-300/24 text-amber-100">Recommended</Badge>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 text-xs leading-5 text-[#8778AD]">
+                Recommendations are general unless live alert data is available. They do not claim active AI/ML detection.
+              </p>
+            </section>
+
+            <section className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0d0b12] p-5 xl:col-span-2">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] text-[#8778AD]">
+                <Layers3 className="h-4 w-4" />
+                Recent training activity
+              </div>
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                {(data?.activity || []).length > 0 ? (
+                  data?.activity.slice(0, 3).map((activity) => (
+                    <div key={activity.id} className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0b0910] p-4">
+                      <p className="text-sm font-semibold text-white">{activity.action}</p>
+                      <p className="mt-1 text-sm text-[#A89CC8]">{activity.moduleTitle}</p>
+                      <p className="mt-3 text-xs text-[#8778AD]">{formatRelative(activity.occurredAt)}</p>
+                    </div>
+                  ))
+                ) : (
+                  <TrainingEmptyState onAssign={() => setAssignmentOpen(true)} />
+                )}
+              </div>
+            </section>
           </div>
-        </Card>
-        );
-      })()}
+        </TabsContent>
+
+        <TabsContent value="library" className="mt-5">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-white">Training Modules Library</h2>
+              <p className="mt-1 text-sm text-[#A89CC8]">Recommended modules are surfaced first, with the rest available for assignment.</p>
+            </div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {trainingModules.map((module) => (
+              <TrainingModuleCard
+                key={module.id}
+                module={module}
+                progress={progressByModule.get(module.id)}
+                recommended={recommendedModules.some((recommended) => recommended.id === module.id)}
+                onOpen={setSelectedModule}
+              />
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="staff" className="mt-5">
+          {isAdmin ? (
+            <StaffTrainingProgress staff={data?.staff || []} onAssign={() => setAssignmentOpen(true)} />
+          ) : (
+            <div className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0d0b12] p-6">
+              <h3 className="text-lg font-semibold text-white">Your training</h3>
+              <p className="mt-2 text-sm leading-6 text-[#A89CC8]">Staff progress views are available to organisation admins. Your own assigned lessons are visible in the module library.</p>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="reports" className="mt-5">
+          <TrainingReports report={data?.report || { completionRate: 0, totalAssigned: 0, totalCompleted: 0, overdueCount: 0, averageQuizScore: 0, generatedAt: new Date().toISOString() }} />
+        </TabsContent>
+      </Tabs>
+
+      <div className="mt-6 rounded-2xl border border-[#8B5CF6]/12 bg-[#0d0b12] p-4 text-xs leading-5 text-[#8778AD]">
+        <AlertTriangle className="mr-2 inline h-4 w-4 text-[#C4B5FD]" />
+        Training supports awareness and internal readiness. It does not replace legal advice, formal POPIA compliance review, or incident response obligations.
+        For POPIA workflows, review the <Link className="text-[#C4B5FD] hover:text-white" to="/dashboard/compliance">Compliance Hub</Link>.
+      </div>
+
+      <TrainingAssignmentModal
+        open={assignmentOpen}
+        staff={data?.staff || []}
+        modules={trainingModules}
+        onClose={() => setAssignmentOpen(false)}
+        onAssign={handleAssign}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+﻿import { Link } from "react-router-dom";
 import { Button } from "@/react-app/components/ui/button";
 import { Card } from "@/react-app/components/ui/card";
 import { Logo } from "@/react-app/components/Logo";
@@ -9,28 +9,28 @@ const sections = [
     title: "Acceptance & Scope",
     icon: <ShieldCheck className="w-6 h-6 text-primary" />,
     body:
-      "By using NexteraAI Security you agree to be bound by these Terms & Conditions, any supplemental terms posted on our website, and the Privacy Policy. These Terms cover access to the platform, simulations, automated AI modules, the knowledge base, and integrations with third-party services.",
+      "By using NexteraAI Security you agree to be bound by these Terms & Conditions, any supplemental terms posted on our website, and the Privacy Policy. These Terms cover access to the platform, security workflows, the knowledge base, and integrations with third-party services.",
   },
   {
     title: "Service Delivery",
     icon: <FileText className="w-6 h-6 text-primary" />,
     body:
-      "We deliver AI-driven detection, response, and compliance modules (Endpoint Shield, Email Guard, Threat Radar, Access Control, POPIA compliance tooling, etc.) as described in our marketing, documentation, and Customer Portal. Availability targets are described in your subscription plan, and we reserve the right to temporarily suspend services for maintenance with notice.",
+      "We deliver rule-based security, response, and compliance modules (Endpoint Shield, Email Guard, Threat Radar, Access Control, POPIA compliance tooling, etc.) as described in our marketing, documentation, and Customer Portal. Availability targets are described in your subscription plan, and we reserve the right to temporarily suspend services for maintenance with notice.",
     bullets: [
-      "Intelligent detection feeds and dashboard summaries are refreshed in real time.",
+      "Detection feeds and dashboard summaries are refreshed in real time where supported by your plan.",
       "Devices, teams, and training modules are gated by your plan tier and device limits.",
       "We may rely on third-party APIs (e.g., SMS, email, OAuth) whose availability is outside our direct control.",
     ],
   },
   {
-    title: "AI Feedback & Learning",
+    title: "Feedback & Review",
     icon: <CheckCircle className="w-6 h-6 text-primary" />,
     body:
-      "You may label detections and export feedback for retraining. Feedback is used to improve context-aware responses, while respecting anonymized data handling described elsewhere. Do not upload personally identifiable information unless it is strictly necessary for investigation and you have the rights to do so.",
+      "You may label detections and export feedback for review. Feedback is used to improve operational response workflows, while respecting the data handling described elsewhere. Do not upload personally identifiable information unless it is strictly necessary for investigation and you have the rights to do so.",
     bullets: [
-      "Feedback may be exported from the dashboard via the “AI Feedback” section.",
+      "Feedback may be exported from the dashboard where supported by your plan.",
       "Exported data is stored in your assigned R2 bucket and flagged once retrieved.",
-      "We retain label history for auditing and model governance.",
+      "We retain label history for auditing and operational review.",
     ],
   },
   {
@@ -43,7 +43,7 @@ const sections = [
     title: "Payment & Billing",
     icon: <ShieldCheck className="w-6 h-6 text-primary" />,
     body:
-      "Subscription fees are billed in South African Rand (ZAR) based on the plan selected. Your organization’s plan determines device caps, simulations, and support SLA. We reserve the right to adjust pricing with 30 days notice. Failure to pay may suspend access.",
+      "Subscription fees are billed in South African Rand (ZAR) based on the plan selected. Your organizationâ€™s plan determines device caps, simulations, and support SLA. We reserve the right to adjust pricing with 30 days notice. Failure to pay may suspend access.",
     bullets: [
       "Devices beyond your plan limit may be blocked until the plan is upgraded.",
       "Notifications (email/SMS/WhatsApp) may continue for overdue accounts to ensure you can remediate quickly.",
@@ -68,8 +68,11 @@ export function Terms() {
             Terms &amp; Conditions
           </h1>
           <p className="text-base text-muted-foreground">
-            These terms describe how NexteraAI Security delivers AI protection, manages
+            These terms describe how NexteraAI Security delivers rule-based protection, manages
             data, and works with your organization. Read them carefully before using the platform.
+          </p>
+          <p className="mx-auto max-w-2xl rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm leading-6 text-primary/90">
+            This document/page is provided for controlled beta review and may be updated before full public launch.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link to="/" className="text-sm font-semibold text-primary underline-offset-2 hover:underline">
@@ -113,7 +116,7 @@ export function Terms() {
           <h3 className="text-2xl font-semibold">Still have questions?</h3>
           <p className="text-sm text-muted-foreground">
             Reach out to our security team at any time. We are happy to walk you through these terms,
-            provide clarifications on AI exports, or explain how we keep your data private and secure.
+            provide clarifications on exports, or explain how we keep your data private and secure.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button variant="default" size="sm" asChild>

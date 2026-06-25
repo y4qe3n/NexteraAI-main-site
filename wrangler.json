@@ -25,12 +25,27 @@
 	],
 	"r2_buckets": [
 		{
-			"binding": "R2_BUCKET",
+			"binding": "R2",
 			"bucket_name": "019c820f-9b27-7e4b-a958-19c0cc493f0c"
 		}
 	],
 	"assets": {
 		"directory": "./dist/client",
+		"binding": "ASSETS",
 		"not_found_handling": "single-page-application"
 	},
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "BILLING_DO",
+				"class_name": "BillingDurableObject"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": ["BillingDurableObject"]
+		}
+	]
 }

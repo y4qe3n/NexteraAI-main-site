@@ -1,27 +1,18 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  BadgeInfo,
+  Database,
+  Loader2,
+  Monitor,
+  Radar,
+  Shield,
+  ShieldCheck,
+} from "lucide-react";
 import { useAuth } from "@/react-app/lib/AuthContext";
 import { useAccessControl } from "@/react-app/hooks/useAccessControl";
 import { EmployeeDashboard } from "./EmployeeDashboard";
-import {
-  Shield,
-  ShieldCheck,
-  ShieldAlert,
-  Monitor,
-  Mail,
-  Database,
-  Loader2,
-  AlertCircle,
-  ArrowUpRight,
-  ChevronRight,
-  Radar,
-  Activity,
-  Sparkles,
-  BadgeInfo,
-  FileCheck,
-  CreditCard,
-} from "lucide-react";
 
 type DashboardStats = {
   organization: { id: number; name: string; devices_limit: number };
@@ -41,25 +32,13 @@ type Threat = {
   detected_at: string;
 };
 
-const pageVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.04,
-    },
-  },
-};
-
-const sectionVariants = {
-  hidden: { opacity: 0, y: 18 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const },
-  },
-};
+type BillingSummary = {
+  tier: string;
+  deviceCount: number;
+  deviceLimit: number | null;
+  nextInvoiceEstimateZar: number;
+  billingCycle: string;
+} | null;
 
 function timeAgo(dateStr: string) {
   const ms = Date.now() - new Date(dateStr).getTime();
@@ -71,35 +50,6 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function severityTone(severity: string) {
-  switch (severity) {
-    case "critical":
-      return {
-        dot: "#F87171",
-        chipBg: "rgba(248,113,113,0.14)",
-        chipText: "#FCA5A5",
-      };
-    case "high":
-      return {
-        dot: "#FB923C",
-        chipBg: "rgba(251,146,60,0.14)",
-        chipText: "#FDBA74",
-      };
-    case "medium":
-      return {
-        dot: "#FACC15",
-        chipBg: "rgba(250,204,21,0.14)",
-        chipText: "#FDE68A",
-      };
-    default:
-      return {
-        dot: "#7EF0C3",
-        chipBg: "rgba(126,240,195,0.14)",
-        chipText: "#A7F3D0",
-      };
-  }
-}
-
 function formatCurrency(value: number) {
   return `R${value.toLocaleString("en-ZA")}`;
 }
@@ -108,565 +58,34 @@ function formatPercent(value: number) {
   return `${Math.max(0, Math.min(100, Math.round(value)))}%`;
 }
 
-export function Dashboard() {
-  const { admin } = useAuth();
-  const { isBasic, isEmployee } = useAccessControl();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [threats, setThreats] = useState<Threat[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [billingSummary, setBillingSummary] = useState<{
-    tier: string;
-    deviceCount: number;
-    deviceLimit: number | null;
-    nextInvoiceEstimateZar: number;
-    billingCycle: string;
-  } | null>(null);
-
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [logoUploading, setLogoUploading] = useState(false);
-
-  useEffect(() => {
-    let revoked = false;
-
-    fetch("/api/organization/logo", { credentials: "include" })
-      .then((r) => {
-        if (r.ok && r.headers.get("content-type")?.startsWith("image")) {
-          return r.blob();
-        }
-        return null;
-      })
-      .then((blob) => {
-        if (!blob || revoked) return;
-        setLogoUrl(URL.createObjectURL(blob));
-      })
-      .catch(() => {});
-
-    return () => {
-      revoked = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/billing/summary", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data) {
-          setBillingSummary({
-            tier: data.tier,
-            deviceCount: data.devices?.current ?? 0,
-            deviceLimit: data.devices?.included ?? null,
-            nextInvoiceEstimateZar: data.next_invoice?.total_incl_vat ?? 0,
-            billingCycle: data.billing_cycle,
-          });
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const [sRes, tRes] = await Promise.all([
-          fetch("/api/dashboard/stats", { credentials: "include" }),
-          fetch("/api/threats?limit=5", { credentials: "include" }),
-        ]);
-
-        if (sRes.ok) setStats(await sRes.json());
-        if (tRes.ok) setThreats(await tRes.json());
-        if (!sRes.ok && !tRes.ok) setError("Failed to load dashboard data.");
-      } catch {
-        setError("Something went wrong. Please refresh.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
-  }, []);
-
-  if (isEmployee) return <EmployeeDashboard />;
-
-  const firstName = admin?.name?.split(" ")[0] || "there";
-  const t = stats?.threats ?? { blocked: 0, active: 0, total: 0, resolved: 0, critical: 0, high: 0 };
-  const d = stats?.devices ?? { total: 0, protected: 0, active: 0, limit: 0 };
-  const c = stats?.compliance ?? { score: 0, completed: 0, total: 0 };
-  const e = stats?.emails ?? { scannedThisWeek: 0, threatsDetected: 0 };
-
-  const deviceCoverage = useMemo(() => {
-    if (!d.limit) return 0;
-    return Math.round((d.protected / d.limit) * 100);
-  }, [d.limit, d.protected]);
-
-  const complianceCoverage = useMemo(() => {
-    if (!c.total) return 0;
-    return Math.round((c.completed / c.total) * 100);
-  }, [c.completed, c.total]);
-
-  const posturing = useMemo(() => {
-    if (t.active > 0 || t.critical > 0) return "attention";
-    if (deviceCoverage < 100 || complianceCoverage < 100) return "watch";
-    return "steady";
-  }, [complianceCoverage, deviceCoverage, t.active, t.critical]);
-
-  const postureLabel =
-    posturing === "attention"
-      ? "Active response needed"
-      : posturing === "watch"
-        ? "Coverage improving"
-        : "Security posture steady";
-
-  const postureCopy =
-    posturing === "attention"
-      ? `${t.active} active alert${t.active === 1 ? "" : "s"} and ${t.critical} critical item${t.critical === 1 ? "" : "s"} need attention.`
-      : posturing === "watch"
-        ? `Coverage is solid, but there is still room to finish device and compliance work.`
-        : `All clear, ${firstName}. Device, email, and compliance signals are aligned.`;
-
-  if (loading) {
-    return (
-      <div className="min-h-[55vh] rounded-[2rem] border border-white/5 bg-[radial-gradient(circle_at_top,rgba(126,240,195,0.08),transparent_35%),linear-gradient(180deg,rgba(8,12,18,0.96),rgba(8,12,18,0.88))] p-6">
-        <div className="mx-auto flex min-h-[50vh] max-w-5xl flex-col items-center justify-center gap-4 text-center">
-          <div className="relative">
-            <div className="absolute inset-0 animate-ping rounded-full border border-emerald-400/30" />
-            <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-400/10">
-              <Loader2 className="h-6 w-6 animate-spin text-emerald-300" />
-            </div>
-          </div>
-          <div>
-            <p className="text-sm uppercase tracking-[0.35em] text-slate-500">Security command deck</p>
-            <p className="mt-2 text-lg text-slate-200">Loading live posture, billing, and threat signals.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="rounded-[1.75rem] border border-rose-400/15 bg-rose-500/5 p-6">
-        <div className="flex items-start gap-3">
-          <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-3 text-rose-300">
-            <AlertCircle className="h-5 w-5" />
-          </div>
-          <div className="max-w-xl">
-            <h2 className="text-lg font-semibold text-slate-100">Dashboard could not load</h2>
-            <p className="mt-1 text-sm text-slate-300">{error}</p>
-            <button
-              className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-white/10"
-              onClick={() => window.location.reload()}
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const tone = severityTone(t.critical > 0 ? "critical" : t.active > 0 ? "high" : "default");
-
-  return (
-    <motion.div
-      className="relative overflow-hidden rounded-[2.25rem] border border-white/5 bg-[radial-gradient(circle_at_top_left,rgba(126,240,195,0.14),transparent_28%),radial-gradient(circle_at_top_right,rgba(250,204,21,0.08),transparent_24%),linear-gradient(180deg,rgba(8,12,18,0.96),rgba(8,12,18,0.92))] p-4 sm:p-6 lg:p-8"
-      variants={pageVariants}
-      initial="hidden"
-      animate="show"
-    >
-      <div className="pointer-events-none absolute inset-0 opacity-60">
-        <div className="nx-grid-bg absolute inset-0 opacity-30" />
-        <div className="absolute left-1/2 top-0 h-80 w-80 -translate-x-1/2 rounded-full bg-emerald-400/10 blur-3xl" />
-        <div className="absolute right-0 top-24 h-72 w-72 rounded-full bg-amber-300/10 blur-3xl" />
-      </div>
-
-      <div className="relative space-y-6 lg:space-y-8">
-        <motion.section
-          className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]"
-          variants={sectionVariants}
-        >
-          <div className="nx-glass rounded-[2rem] p-6 sm:p-7 lg:p-8">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-emerald-200">
-                Security command deck
-              </span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.28em] text-slate-400">
-                {stats?.organization.name ?? "Your organisation"}
-              </span>
-            </div>
-
-            <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(260px,0.9fr)] lg:items-end">
-              <div>
-                <div className="flex items-center gap-3 text-sm text-slate-400">
-                  <Sparkles className="h-4 w-4 text-emerald-300" />
-                  Live threat, device, and compliance signals
-                </div>
-                <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-[-0.04em] text-slate-50 sm:text-5xl xl:text-6xl">
-                  {postureLabel}
-                </h1>
-                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-                  {postureCopy}
-                </p>
-
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <Link
-                    to="/dashboard/threats"
-                    className="inline-flex items-center gap-2 rounded-full bg-emerald-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-emerald-300"
-                  >
-                    View alerts
-                    <ArrowUpRight className="h-4 w-4" />
-                  </Link>
-                  <Link
-                    to="/dashboard/endpoints"
-                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:-translate-y-0.5 hover:bg-white/10"
-                  >
-                    Open devices
-                    <ChevronRight className="h-4 w-4" />
-                  </Link>
-                  <Link
-                    to="/dashboard/billing"
-                    className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/10 px-5 py-3 text-sm font-semibold text-amber-100 transition hover:-translate-y-0.5 hover:bg-amber-300/15"
-                  >
-                    Review billing
-                    <CreditCard className="h-4 w-4" />
-                  </Link>
-                </div>
-              </div>
-
-              <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/55 p-5 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.75)]">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Posture core</p>
-                    <p className="mt-1 text-sm font-medium text-slate-200">Coverage and response</p>
-                  </div>
-                  <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
-                    {formatPercent(deviceCoverage)} devices
-                  </div>
-                </div>
-
-                <div className="mt-5 flex items-center justify-center">
-                  <div
-                    className="relative flex h-56 w-56 items-center justify-center rounded-full border border-white/10"
-                    style={{
-                      background: `conic-gradient(from 210deg, ${tone.dot} 0 ${Math.max(deviceCoverage, 6)}%, rgba(255,255,255,0.07) ${Math.max(deviceCoverage, 6)}% 100%)`,
-                    }}
-                  >
-                    <div className="absolute inset-4 rounded-full border border-white/8 bg-slate-950/90 shadow-inner" />
-                    <div className="relative z-10 flex h-32 w-32 items-center justify-center rounded-full border border-white/10 bg-[radial-gradient(circle_at_top,rgba(126,240,195,0.14),rgba(8,12,18,0.95))]">
-                      {logoUrl ? (
-                        <img src={logoUrl} alt="Organisation logo" className="h-16 w-16 rounded-full object-contain" />
-                      ) : (
-                        <Shield className="h-12 w-12 text-emerald-300" />
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                  <KpiChip icon={<ShieldCheck className="h-4 w-4" />} label="Blocked" value={t.blocked} accent="#7EF0C3" />
-                  <KpiChip icon={<ShieldAlert className="h-4 w-4" />} label="Active" value={t.active} accent={t.active > 0 ? "#F97316" : "#7EF0C3"} />
-                  <KpiChip icon={<FileCheck className="h-4 w-4" />} label="Compliance" value={formatPercent(complianceCoverage)} accent="#FACC15" />
-                </div>
-
-                <div className="mt-4 rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-slate-500">
-                    <span>Environment pulse</span>
-                    <span>{stats?.emails.scannedThisWeek ?? 0} emails scanned</span>
-                  </div>
-                  <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-xl border border-white/8 bg-slate-950/50 p-3">
-                      <p className="text-slate-500">Devices protected</p>
-                      <p className="mt-1 text-lg font-semibold text-slate-100">{d.protected} / {d.limit || d.total}</p>
-                    </div>
-                    <div className="rounded-xl border border-white/8 bg-slate-950/50 p-3">
-                      <p className="text-slate-500">Threats stopped</p>
-                      <p className="mt-1 text-lg font-semibold text-slate-100">{e.threatsDetected}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <label
-                  className="mt-4 flex cursor-pointer items-center justify-center rounded-full border border-dashed border-white/12 bg-white/[0.02] px-4 py-3 text-sm text-slate-300 transition hover:bg-white/[0.05]"
-                  title="Upload your company logo"
-                >
-                  <span>{logoUploading ? "Uploading logo..." : "Update company logo"}</span>
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      setLogoUploading(true);
-                      const fd = new FormData();
-                      fd.append("logo", file);
-                      try {
-                        const res = await fetch("/api/organization/logo", {
-                          method: "POST",
-                          credentials: "include",
-                          body: fd,
-                        });
-                        if (res.ok) {
-                          setLogoUrl(URL.createObjectURL(file));
-                        }
-                      } catch {
-                        // no-op
-                      } finally {
-                        setLogoUploading(false);
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-            </div>
-          </div>
-        </motion.section>
-
-        <motion.section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" variants={sectionVariants}>
-          <MetricTile
-            icon={<ShieldCheck className="h-5 w-5" />}
-            label="Threats blocked"
-            value={t.blocked}
-            sub={`${t.resolved} resolved`}
-            accent="#7EF0C3"
-          />
-          <MetricTile
-            icon={<ShieldAlert className="h-5 w-5" />}
-            label="Active alerts"
-            value={t.active}
-            sub={t.critical > 0 ? `${t.critical} critical` : "No critical items"}
-            accent={t.active > 0 ? "#F97316" : "#7EF0C3"}
-          />
-          <MetricTile
-            icon={<Monitor className="h-5 w-5" />}
-            label="Device coverage"
-            value={`${d.protected}/${d.limit || d.total}`}
-            sub={`${d.active} online now`}
-            accent="#93C5FD"
-          />
-          <MetricTile
-            icon={<Mail className="h-5 w-5" />}
-            label="Email threats stopped"
-            value={e.threatsDetected}
-            sub={`${e.scannedThisWeek} scanned this week`}
-            accent="#FACC15"
-          />
-        </motion.section>
-
-        <motion.section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.85fr)]" variants={sectionVariants}>
-          <div className="nx-glass rounded-[2rem] p-0">
-            <div className="flex items-center justify-between border-b border-white/8 px-5 py-4 sm:px-6">
-              <div>
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-500">
-                  <Activity className="h-4 w-4 text-emerald-300" />
-                  Live incident stream
-                </div>
-                <h2 className="mt-2 text-lg font-semibold text-slate-50">Recent security activity</h2>
-              </div>
-              <Link to="/dashboard/threats" className="inline-flex items-center gap-1 text-sm font-medium text-emerald-300 transition hover:text-emerald-200">
-                All events
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </div>
-
-            {threats.length === 0 ? (
-              <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-                <div className="rounded-full border border-emerald-400/15 bg-emerald-400/10 p-4 text-emerald-200">
-                  <ShieldCheck className="h-8 w-8" />
-                </div>
-                <p className="mt-4 text-lg font-medium text-slate-100">No recent threats</p>
-                <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">
-                  The environment looks calm right now. The next event that arrives will appear here with source, target, and severity.
-                </p>
-              </div>
-            ) : (
-              <div className="divide-y divide-white/6">
-                {threats.map((threat) => {
-                  const tone = severityTone(threat.severity);
-
-                  return (
-                    <div key={threat.id} className="grid gap-4 px-5 py-4 sm:px-6 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center">
-                      <div
-                        className="mt-1 h-3 w-3 rounded-full shadow-[0_0_18px_rgba(255,255,255,0.2)]"
-                        style={{ backgroundColor: tone.dot }}
-                      />
-
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="truncate text-sm font-semibold text-slate-100">{threat.threat_type}</p>
-                          <span
-                            className="rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]"
-                            style={{ backgroundColor: tone.chipBg, color: tone.chipText }}
-                          >
-                            {threat.severity}
-                          </span>
-                        </div>
-                        <p className="mt-1 truncate text-sm text-slate-400">
-                          {threat.source ?? "Unknown source"} to {threat.target ?? "Unknown target"}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-3 md:justify-end">
-                        <span
-                          className="rounded-full border border-white/8 px-3 py-1 text-xs font-medium capitalize text-slate-200"
-                          style={{
-                            backgroundColor:
-                              threat.status === "blocked" || threat.status === "resolved"
-                                ? "rgba(126,240,195,0.12)"
-                                : "rgba(251,191,36,0.12)",
-                            color:
-                              threat.status === "blocked" || threat.status === "resolved"
-                                ? "#A7F3D0"
-                                : "#FDE68A",
-                          }}
-                        >
-                          {threat.status}
-                        </span>
-                        <span className="text-xs font-mono text-slate-500">{timeAgo(threat.detected_at)}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-6">
-            <InfoCard
-              icon={<Radar className="h-4 w-4" />}
-              title="Systems"
-              eyebrow="Operational status"
-            >
-              <div className="space-y-3">
-                <SystemLine name="Endpoint Shield" active />
-                <SystemLine name="Email Guard" active />
-                <SystemLine name="Access Control" active />
-                <SystemLine name="Data Vault" active />
-              </div>
-            </InfoCard>
-
-            <InfoCard
-              icon={<Database className="h-4 w-4" />}
-              title="Billing"
-              eyebrow="Capacity and plan"
-            >
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-slate-400">Plan tier</p>
-                    <p className="mt-1 text-lg font-semibold text-slate-100 capitalize">
-                      {billingSummary?.tier ?? "basic"}
-                    </p>
-                  </div>
-                  <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
-                    {billingSummary?.billingCycle ?? "monthly"}
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                  <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span>Device capacity</span>
-                    <span>
-                      {billingSummary?.deviceCount ?? 0}
-                      {billingSummary?.deviceLimit ? ` / ${billingSummary.deviceLimit}` : ""}
-                    </span>
-                  </div>
-                  <div className="mt-3 h-2 rounded-full bg-white/6">
-                    <div
-                      className="h-2 rounded-full"
-                      style={{
-                        width: `${Math.min(
-                          ((billingSummary?.deviceCount ?? 0) / (billingSummary?.deviceLimit ?? Math.max(d.limit, 1))) * 100,
-                          100,
-                        )}%`,
-                        background: "linear-gradient(90deg, #7EF0C3 0%, #93C5FD 100%)",
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-baseline justify-between">
-                  <span className="text-sm text-slate-400">Next invoice</span>
-                  <span className="text-2xl font-semibold tracking-[-0.04em] text-slate-100">
-                    {formatCurrency(billingSummary?.nextInvoiceEstimateZar ?? 0)}
-                  </span>
-                </div>
-
-                <Link
-                  to="/dashboard/billing"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-300 transition hover:text-emerald-200"
-                >
-                  Manage billing
-                  <ChevronRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </InfoCard>
-
-            <InfoCard
-              icon={<BadgeInfo className="h-4 w-4" />}
-              title="Coverage snapshot"
-              eyebrow="At a glance"
-            >
-              <div className="grid gap-3 sm:grid-cols-2">
-                <TinyStat label="Devices protected" value={`${d.protected} / ${d.limit || d.total}`} />
-                <TinyStat label="Compliance" value={`${c.completed} / ${c.total}`} />
-                <TinyStat label="Threats blocked" value={String(t.blocked)} />
-                <TinyStat label="Email alerts" value={String(e.threatsDetected)} />
-              </div>
-            </InfoCard>
-
-            {isBasic && (
-              <Link
-                to="/dashboard/billing"
-                className="block rounded-[1.75rem] border border-amber-300/20 bg-[linear-gradient(135deg,rgba(250,204,21,0.12),rgba(126,240,195,0.08))] p-5 transition hover:-translate-y-0.5 hover:border-amber-300/35"
-              >
-                <p className="text-sm font-semibold text-slate-100">Upgrade to Pro</p>
-                <p className="mt-2 text-sm leading-6 text-slate-300">
-                  Unlock advanced detection, higher device capacity, and a stronger support tier.
-                </p>
-              </Link>
-            )}
-          </div>
-        </motion.section>
-      </div>
-    </motion.div>
-  );
-}
-
-function MetricTile({
+function StatCard({
   label,
   value,
-  sub,
+  note,
   icon,
-  accent,
 }: {
   label: string;
   value: string | number;
-  sub: string;
+  note: string;
   icon: ReactNode;
-  accent: string;
 }) {
   return (
-    <div className="nx-glass rounded-[1.5rem] p-5 transition hover:-translate-y-1 hover:border-white/15">
+    <div className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0d0b12] p-5 shadow-[0_20px_60px_-35px_rgba(124,58,237,0.55)]">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.28em] text-slate-500">{label}</p>
-          <p className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-slate-50">{value}</p>
+          <p className="text-[11px] uppercase tracking-[0.28em] text-[#8778AD]">{label}</p>
+          <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">{value}</p>
         </div>
-        <div className="rounded-2xl border border-white/8 p-3" style={{ backgroundColor: `${accent}18`, color: accent }}>
+        <div className="rounded-xl border border-[#8B5CF6]/20 bg-[#1A102B] p-3 text-[#C4B5FD]">
           {icon}
         </div>
       </div>
-      <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-white/6">
-        <div className="h-full w-2/3 rounded-full" style={{ background: `linear-gradient(90deg, ${accent}, rgba(255,255,255,0.25))` }} />
-      </div>
-      <p className="mt-3 text-sm text-slate-400">{sub}</p>
+      <p className="mt-3 text-sm leading-6 text-[#A89CC8]">{note}</p>
     </div>
   );
 }
 
-function InfoCard({
+function SectionCard({
   eyebrow,
   title,
   icon,
@@ -678,60 +97,293 @@ function InfoCard({
   children: ReactNode;
 }) {
   return (
-    <div className="nx-glass rounded-[1.75rem] p-5">
-      <div className="flex items-center justify-between gap-4 border-b border-white/8 pb-4">
+    <section className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0d0b12] p-5">
+      <div className="flex items-center justify-between gap-4 border-b border-[#8B5CF6]/12 pb-4">
         <div>
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-500">
+          <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-[#8778AD]">
             {icon}
             {eyebrow}
           </div>
-          <h2 className="mt-2 text-lg font-semibold text-slate-50">{title}</h2>
+          <h2 className="mt-2 text-lg font-semibold text-white">{title}</h2>
         </div>
       </div>
       <div className="pt-5">{children}</div>
-    </div>
+    </section>
   );
 }
 
-function SystemLine({ name, active }: { name: string; active: boolean }) {
-  return (
-    <div className="flex items-center gap-3 rounded-2xl border border-white/6 bg-white/[0.02] px-3 py-3">
-      <div className={`h-2.5 w-2.5 rounded-full ${active ? "bg-emerald-300 shadow-[0_0_18px_rgba(126,240,195,0.45)]" : "bg-slate-500"}`} />
-      <span className="flex-1 text-sm text-slate-100">{name}</span>
-      <span className="text-xs font-medium text-slate-400">{active ? "Active" : "Muted"}</span>
-    </div>
-  );
-}
+export function Dashboard() {
+  const { admin } = useAuth();
+  const { isEmployee } = useAccessControl();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [threats, setThreats] = useState<Threat[]>([]);
+  const [billingSummary, setBillingSummary] = useState<BillingSummary>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-function TinyStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-3">
-      <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-slate-100">{value}</p>
-    </div>
-  );
-}
+  useEffect(() => {
+    let cancelled = false;
 
-function KpiChip({
-  label,
-  value,
-  accent,
-  icon,
-}: {
-  label: string;
-  value: string | number;
-  accent: string;
-  icon: ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-3">
-      <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{label}</p>
-        <span style={{ color: accent }}>{icon}</span>
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [statsRes, threatsRes, billingRes] = await Promise.all([
+          fetch("/api/dashboard/stats", { credentials: "include" }),
+          fetch("/api/threats?limit=3", { credentials: "include" }),
+          fetch("/api/billing/summary", { credentials: "include" }),
+        ]);
+
+        if (cancelled) return;
+
+        if (statsRes.ok) setStats(await statsRes.json());
+        if (threatsRes.ok) setThreats(await threatsRes.json());
+        if (billingRes.ok) {
+          const data = await billingRes.json();
+          setBillingSummary({
+            tier: data.tier,
+            deviceCount: data.devices?.current ?? 0,
+            deviceLimit: data.devices?.included ?? null,
+            nextInvoiceEstimateZar: data.next_invoice?.total_incl_vat ?? 0,
+            billingCycle: data.billing_cycle,
+          });
+        }
+
+        if (!statsRes.ok && !threatsRes.ok && !billingRes.ok) {
+          setError("Dashboard data could not load.");
+        }
+      } catch {
+        if (!cancelled) setError("Something went wrong. Please refresh.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (isEmployee) return <EmployeeDashboard />;
+
+  const businessName = stats?.organization?.name || admin?.name || "NexteraAI Operations";
+  const devices = stats?.devices ?? { total: 0, protected: 0, active: 0, limit: 0 };
+  const threatsSummary = stats?.threats ?? { total: 0, active: 0, blocked: 0, resolved: 0, critical: 0, high: 0 };
+  const compliance = stats?.compliance ?? { score: 0, completed: 0, total: 0 };
+  const emails = stats?.emails ?? { scannedThisWeek: 0, threatsDetected: 0 };
+
+  const deviceCoverage = devices.limit ? Math.round((devices.protected / devices.limit) * 100) : 0;
+  if (loading) {
+    return (
+      <div className="mx-auto flex min-h-[55vh] max-w-6xl items-center justify-center px-4 py-10">
+        <div className="flex items-center gap-3 rounded-full border border-[#8B5CF6]/12 bg-[#0c0a11] px-5 py-3 text-sm text-[#A89CC8]">
+          <Loader2 className="h-4 w-4 animate-spin text-[#C4B5FD]" />
+          Loading dashboard
+        </div>
       </div>
-      <p className="mt-3 text-2xl font-semibold tracking-[-0.04em]" style={{ color: accent }}>
-        {value}
-      </p>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-10">
+        <div className="rounded-2xl border border-rose-400/15 bg-rose-500/5 p-6">
+          <p className="text-sm font-semibold text-white">Dashboard could not load</p>
+          <p className="mt-2 text-sm text-slate-300">{error}</p>
+          <button
+            className="mt-4 rounded-full border border-[#8B5CF6]/14 bg-[#0b0910] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#14101d]"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const recentThreats = threats.slice(0, 3);
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="rounded-[2rem] border border-[#8B5CF6]/12 bg-[linear-gradient(180deg,rgba(12,10,18,0.99),rgba(5,4,10,0.99))] p-6 shadow-[0_35px_90px_-45px_rgba(124,58,237,0.55)]">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <p className="text-[11px] uppercase tracking-[0.35em] text-[#8778AD]">Dashboard</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-white sm:text-4xl">
+              {businessName}
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#A89CC8] sm:text-base">
+              Quick status for devices, threats, compliance, and billing. Open Agents when you need to check enrolled devices or roll out a new one.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row lg:items-center">
+            <Link
+              to="/dashboard/agents"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#6D28D9] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8B5CF6]"
+            >
+              Open agents
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              to="/dashboard/threats"
+              className="inline-flex items-center justify-center rounded-full border border-[#8B5CF6]/14 bg-[#0b0910] px-4 py-2.5 text-sm font-medium text-[#E9D5FF] transition hover:bg-[#14101d]"
+            >
+              Review threats
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0a0810] px-4 py-3">
+            <p className="text-[11px] uppercase tracking-[0.26em] text-[#8778AD]">Devices</p>
+            <p className="mt-2 text-2xl font-semibold text-white">{devices.protected} / {devices.limit || devices.total}</p>
+          </div>
+          <div className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0a0810] px-4 py-3">
+            <p className="text-[11px] uppercase tracking-[0.26em] text-[#8778AD]">Threats</p>
+            <p className="mt-2 text-2xl font-semibold text-white">{threatsSummary.active} open</p>
+          </div>
+          <div className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0a0810] px-4 py-3">
+            <p className="text-[11px] uppercase tracking-[0.26em] text-[#8778AD]">Compliance</p>
+            <p className="mt-2 text-2xl font-semibold text-white">{formatPercent(compliance.score)}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <StatCard
+          label="Protected devices"
+          value={`${devices.protected}`}
+          note={`Coverage sits at ${formatPercent(deviceCoverage)} across the current fleet.`}
+          icon={<Monitor className="h-5 w-5" />}
+        />
+        <StatCard
+          label="Open threats"
+          value={`${threatsSummary.active}`}
+          note={`${threatsSummary.blocked} threats have already been blocked or resolved.`}
+          icon={<Radar className="h-5 w-5" />}
+        />
+        <StatCard
+          label="Compliance score"
+          value={formatPercent(compliance.score)}
+          note={`${compliance.completed} of ${compliance.total} checks are complete.`}
+          icon={<Shield className="h-5 w-5" />}
+        />
+      </div>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <SectionCard eyebrow="Recent" title="Threats" icon={<BadgeInfo className="h-4 w-4" />}>
+          {recentThreats.length ? (
+            <div className="space-y-3">
+              {recentThreats.map((threat) => (
+                <div key={threat.id} className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0b0910] p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-white">{threat.threat_type}</p>
+                      <p className="mt-1 text-sm text-[#A89CC8]">
+                        {threat.source ?? "Unknown source"} to {threat.target ?? "Unknown target"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="inline-flex rounded-full border border-[#8B5CF6]/20 bg-[#1A102B] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#E9D5FF]">
+                        {threat.severity}
+                      </span>
+                      <p className="mt-2 text-xs text-[#8778AD]">{timeAgo(threat.detected_at)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-[#8B5CF6]/14 bg-[#0b0910] p-5 text-sm text-[#A89CC8]">
+              No recent threats.
+            </div>
+          )}
+        </SectionCard>
+
+        <div className="space-y-6">
+          <SectionCard eyebrow="Agents" title="Device rollout" icon={<ShieldCheck className="h-4 w-4" />}>
+            <p className="text-sm leading-6 text-[#A89CC8]">
+              Check enrolled agents, invite a new device, or review the fleet from one place.
+            </p>
+            <Link
+              to="/dashboard/agents"
+              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#C4B5FD] transition hover:text-white"
+            >
+              Go to agents
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </SectionCard>
+
+          <SectionCard eyebrow="Billing" title="Plan" icon={<Database className="h-4 w-4" />}>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[#A89CC8]">Current tier</p>
+                  <p className="mt-1 text-lg font-semibold text-white capitalize">
+                    {billingSummary?.tier ?? "basic"}
+                  </p>
+                </div>
+                <div className="rounded-full border border-[#8B5CF6]/14 bg-[#0b0910] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#D8B4FE]">
+                  {billingSummary?.billingCycle ?? "monthly"}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0b0910] p-4">
+                <div className="flex items-center justify-between text-xs text-[#8f7dbf]">
+                  <span>Device capacity</span>
+                  <span>
+                    {billingSummary?.deviceCount ?? 0}
+                    {billingSummary?.deviceLimit ? ` / ${billingSummary.deviceLimit}` : ""}
+                  </span>
+                </div>
+                <div className="mt-3 h-2 rounded-full bg-white/6">
+                  <div
+                    className="h-2 rounded-full bg-gradient-to-r from-[#6D28D9] to-[#C4B5FD]"
+                    style={{
+                      width: `${Math.min(
+                        ((billingSummary?.deviceCount ?? 0) / (billingSummary?.deviceLimit ?? Math.max(devices.limit, 1))) * 100,
+                        100,
+                      )}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm text-[#A89CC8]">Next invoice</span>
+                <span className="text-2xl font-semibold tracking-[-0.04em] text-white">
+                  {formatCurrency(billingSummary?.nextInvoiceEstimateZar ?? 0)}
+                </span>
+              </div>
+
+              <Link
+                to="/dashboard/billing"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[#C4B5FD] transition hover:text-white"
+              >
+                Manage billing
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </SectionCard>
+
+          <SectionCard eyebrow="Mail" title="Weekly email checks" icon={<ShieldCheck className="h-4 w-4" />}>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0b0910] p-4">
+                <p className="text-xs uppercase tracking-[0.24em] text-[#8778AD]">Scanned</p>
+                <p className="mt-2 text-xl font-semibold text-white">{emails.scannedThisWeek}</p>
+              </div>
+              <div className="rounded-2xl border border-[#8B5CF6]/12 bg-[#0b0910] p-4">
+                <p className="text-xs uppercase tracking-[0.24em] text-[#8778AD]">Threats</p>
+                <p className="mt-2 text-xl font-semibold text-white">{emails.threatsDetected}</p>
+              </div>
+            </div>
+          </SectionCard>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from "react-router";
+﻿import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card } from "@/react-app/components/ui/card";
 import { Button } from "@/react-app/components/ui/button";
 import { XCircle, ArrowLeft, RefreshCw } from "lucide-react";
@@ -21,8 +21,11 @@ export function PaymentCancel() {
         </div>
 
         <h1 className="text-2xl font-bold mb-2">Payment Cancelled</h1>
-        <p className="text-muted-foreground mb-6">
+        <p className="text-muted-foreground mb-4">
           Your payment was not completed. No charges were made to your account.
+        </p>
+        <p className="text-xs text-muted-foreground/70 mb-6">
+          NexteraAI is currently onboarding selected businesses through a controlled beta programme. You can try again or contact us for assistance.
         </p>
 
         <div className="space-y-3">

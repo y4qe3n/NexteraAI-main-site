@@ -24,7 +24,7 @@ export default function StickyMobileCTA() {
       >
         <ShieldCheck className="w-4 h-4" />
         Start Protecting My Business
-        <ArrowRight className="w-4 h-4" />
+        <ArrowRight className="w-4 h-4" data-icon-end />
       </a>
     </div>
   );

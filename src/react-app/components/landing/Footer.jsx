@@ -3,19 +3,39 @@ const LOGO_URL = "https://customer-assets.emergentagent.com/job_ai-ops-hub-19/ar
 const COLS = [
   {
     title: "Product",
-    links: ["Features", "Security", "Pricing", "Changelog"],
+    links: [
+      { label: "Features", href: "/#features" },
+      { label: "Security", href: "/#security" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "Changelog", href: "/changelog" },
+    ],
   },
   {
     title: "Company",
-    links: ["About", "Careers", "Press", "Contact"],
+    links: [
+      { label: "About", href: "/about" },
+      { label: "Careers", href: "/careers" },
+      { label: "Press", href: "/press" },
+      { label: "Contact", href: "/contact" },
+    ],
   },
   {
     title: "Resources",
-    links: ["Documentation", "POPIA Guide", "Threat Reports", "Status"],
+    links: [
+      { label: "Documentation", href: "/docs" },
+      { label: "POPIA Guide", href: "/popia-guide" },
+      { label: "Threat Reports", href: "/threat-reports" },
+      { label: "Status", href: "/status" },
+    ],
   },
   {
     title: "Legal",
-    links: ["Privacy", "Terms", "DPA", "POPIA Compliance"],
+    links: [
+      { label: "Privacy", href: "/privacy" },
+      { label: "Terms", href: "/terms" },
+      { label: "DPA", href: "/dpa" },
+      { label: "POPIA Compliance", href: "/popia-compliance" },
+    ],
   },
 ];
 
@@ -47,13 +67,13 @@ export default function Footer() {
               <p className="text-[12px] uppercase tracking-wider text-[#8778AD] font-medium">{c.title}</p>
               <ul className="mt-4 space-y-2.5">
                 {c.links.map((l) => (
-                  <li key={l}>
+                  <li key={l.label}>
                     <a
-                      href="#"
-                      data-testid={`footer-link-${c.title.toLowerCase()}-${l.toLowerCase().replace(/\s+/g, "-")}`}
+                      href={l.href}
+                      data-testid={`footer-link-${c.title.toLowerCase()}-${l.label.toLowerCase().replace(/\s+/g, "-")}`}
                       className="text-xs xs:text-[13px] md:text-[13.5px] text-[#C2B6E0] hover:text-white transition"
                     >
-                      {l}
+                      {l.label}
                     </a>
                   </li>
                 ))}
@@ -67,7 +87,8 @@ export default function Footer() {
             <p className="text-[12.5px] text-[#8778AD] font-semibold mb-3">NexteraAI (Pty) Ltd</p>
             <p className="text-[11.5px] text-[#6E6389] mb-1">Registered Information Regulator (IR) Registration: 2026-017190</p>
             <p className="text-[11.5px] text-[#6E6389] mb-1">Companies and Intellectual Property Commission (CIPC) Registration: 2026/250621/07</p>
-            <p className="text-[11.5px] text-[#6E6389]">South African Registered Company · POPIA Compliant</p>
+            <p className="text-[11.5px] text-[#6E6389] mb-1">South African Registered Company · POPIA Compliant</p>
+            <p className="text-[11.5px] text-[#A78BFA] mt-2">Currently onboarding selected businesses through a controlled beta programme.</p>
           </div>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-[12.5px] text-[#8778AD]">
@@ -78,8 +99,8 @@ export default function Footer() {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 All systems operational
               </span>
-              <a href="#" className="hover:text-white">Status</a>
-              <a href="#" className="hover:text-white">Security</a>
+              <a href="/status" className="hover:text-white">Status</a>
+              <a href="/#security" className="hover:text-white">Security</a>
             </div>
           </div>
         </div>

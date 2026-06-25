@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+﻿import { Link } from "react-router-dom";
 import { Button } from "@/react-app/components/ui/button";
 import { Card } from "@/react-app/components/ui/card";
 import { Logo } from "@/react-app/components/Logo";
@@ -28,7 +28,7 @@ const sections = [
       "Personal Information we process on behalf of our Clients as Operator (Client Data).",
       "Personal Information collected via our website, dashboard, emails, or other interactions.",
     ],
-    footer: "It does not apply to Personal Information processed by our Clients as Responsible Parties — they must provide their own privacy notices to their data subjects.",
+    footer: "It does not apply to Personal Information processed by our Clients as Responsible Parties â€” they must provide their own privacy notices to their data subjects.",
   },
   {
     id: "collection",
@@ -77,7 +77,7 @@ const sections = [
     icon: <Users className="w-5 h-5 text-primary" />,
     content: "We do not sell Personal Information. We may share it only:",
     list: [
-      "With service providers (sub-processors) who assist us (e.g. cloud hosting in South Africa or adequate jurisdictions, payment gateways like PayFast, SMS providers) — bound by strict agreements.",
+      "With service providers (sub-processors) who assist us (e.g. cloud hosting in South Africa or adequate jurisdictions, payment gateways like PayFast, SMS providers) â€” bound by strict agreements.",
       "To comply with law, court orders or regulator requests.",
       "In connection with business transfers (merger/acquisition) with equivalent protections.",
       "To protect our rights, safety or property.",
@@ -157,6 +157,9 @@ export function Privacy() {
           </h1>
           <p className="text-base text-muted-foreground max-w-2xl mx-auto">
             NexteraAI Security is committed to protecting your Personal Information in accordance with the Protection of Personal Information Act 4 of 2013 (POPIA) and applicable South African law.
+          </p>
+          <p className="mx-auto max-w-2xl rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm leading-6 text-primary/90">
+            This document/page is provided for controlled beta review and may be updated before full public launch.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link to="/" className="text-sm font-semibold text-primary underline-offset-2 hover:underline">

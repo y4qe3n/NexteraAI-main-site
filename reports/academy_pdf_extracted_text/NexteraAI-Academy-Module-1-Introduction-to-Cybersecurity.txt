@@ -1,0 +1,164 @@
+
+
+--- PAGE 1 ---
+NexteraAI Security Academy Module 
+Module 1: Introduction to Cybersecurity Protecting Your Digital Assets 
+ 
+  
+
+
+--- PAGE 2 ---
+Why Small Businesses in SA Need Cybersecurity Right Now 
+ 
+ Why Your Business Can't Afford to Ignore Cybersecurity in 2026 
+ 
+South Africa is one of the most targeted countries in the world for cyberattacks—right 
+behind the US and UK. Criminals don't just go after big corporations anymore. Small 
+businesses like yours are prime targets because you often have valuable customer 
+data, limited security, and less time to recover. 
+ 
+Shocking Stats (2025–2026): 
+• South African organisations face an average of over 2,100–2,145 cyber attacks 
+per week (Check Point Software Technologies reports ~2,113 weekly in mid-
+2025, rising to 2,145 in early 2026 data—a 36% year-on-year jump in some 
+metrics). 
+• This equates to roughly 577 attacks per hour nationwide (consistent figure from 
+Accenture and local reports still referenced in 2026). 
+• The average cost of a data breach in South Africa is now around R44 million (IBM 
+Cost of a Data Breach Report 2025), down slightly from R53 million the year 
+before thanks to better AI detection—but still devastating for small businesses. 
+• Many small businesses face R43–50 million in total damages when you include 
+lost sales, recovery, fines, and reputation hits. 
+• Globally and locally, up to 60% of small businesses close within 6 months of a 
+major cyber incident (UK studies, but SA trends mirror this due to limited 
+resources). 
+ 
+Your business holds customer details (ID numbers, phone numbers, card info, 
+addresses). One breach can destroy trust, trigger POPIA fines (up to R10 million), and 
+force closure. But the good news? Basic steps make a huge difference—and that's what 
+this academy teaches. 
+ 
+ 
+ 
+
+
+--- PAGE 3 ---
+ 
+ 
+The Three Main Goals (CIA Triad) 
+ 
+The CIA Triad – The Foundation of All Cybersecurity 
+ 
+Every strong defence aims to protect three core things. Think of them as the "CIA" of 
+your business data: 
+1. Confidentiality – Keep customer data private Only authorised people see 
+sensitive info. Example: Customer phone numbers, ID copies, or payment 
+details stay hidden from hackers. A breach here leads to identity theft, fraud, or 
+POPIA violations. 
+2. Integrity – Stop data being changed or deleted Ensure information stays 
+accurate and untampered. Example: A hacker alters your stock records or 
+changes a customer's booking—causing chaos, lost sales, or wrong charges. 
+3. Availability – Keep your systems working when you need them Your POS system, 
+WhatsApp Business, online bookings, or CCTV must stay online. Example: 
+Ransomware locks your files or a DDoS attack crashes your website—customers 
+go elsewhere. 
+Protect all three, and your business stays safe, trusted, and running smoothly. 
+ 
+
+
+
+--- PAGE 4 ---
+Everyday Examples for Retail, Salons, Mechanics, Restaurants 
+ 
+Real-Life Risks – How Cyberattacks Hit Businesses Like Yours 
+ 
+• Retail Shop — Hacker sends fake "supplier invoice" email (phishing). Owner 
+clicks, malware steals card details from hundreds of customers. Result: 
+Chargebacks, angry clients, POPIA report required. 
+• Hair Salon/Beauty — Staff use same weak password for booking app and email. 
+Attacker guesses it, changes all appointments to blank, demands ransom. Salon 
+loses a week's bookings (R20,000+ lost). 
+• Mechanic/Auto Repair — Customer pays via EFT, but criminal intercepts via 
+fake "bank update" SMS. Mechanic's business account drained. No backups = 
+weeks offline sorting it out. 
+• Restaurant/Takeaway — Online menu/order site hacked (weak security). Menu 
+prices changed to R1, or orders deleted. Worse: Customer data leaked, leading 
+to fraud and bad reviews. 
+These aren't "big company" problems. They happen weekly to SA small businesses—
+often starting with one click or missed software update. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+--- PAGE 5 ---
+Top 5 Threats Facing SA Small Businesses in 2026 
+ 
+The Top 5 Cyber Threats Hitting SA Small Businesses Right Now 
+ 
+1. Phishing & Business Email Compromise (BEC) — Fake emails/SMS/WhatsApp 
+from "bank" , "supplier" , or "SARS" . Most common entry point—tricks you into 
+giving login details or clicking bad links. 
+2. Ransomware — Files locked, ransom demanded (often R100,000+). SMEs hit 
+hard because many pay to recover quickly. AI makes these attacks smarter and 
+faster in 2026. 
+3. Weak Passwords & Credential Stuffing — Reusing passwords across sites. 
+Hackers use leaked lists to break in. Many small business accounts still use 
+"123456" or "password" . 
+4. Missed Calls / Vishing / Smishing — Criminals call pretending to be IT support, 
+bank, or Microsoft. They trick you into remote access or sharing codes. Rising 
+with load-shedding confusion. 
+5. POPIA Risks & Data Leaks — Accidental leaks (lost phone, unencrypted email) 
+or breaches expose personal info. Fines up to R10 million + reputational damage. 
+Regulator getting stricter in 2026. 
+These threats exploit human habits and simple tech gaps—not high-tech wizardry. 
+ 
+
+
+
+--- PAGE 6 ---
+5 Quick Actions Every Owner Can Take Today 
+ 
+5 Simple Steps You Can Implement This Week 
+ 
+1. Turn on Multi-Factor Authentication (MFA) everywhere — Email, banking, POS, 
+WhatsApp Business. Use app or SMS code—not just password. 
+2. Keep everything updated — Phones, computers, POS software, routers. Auto-
+updates catch most vulnerabilities criminals exploit. 
+3. Make regular backups — Copy important files (invoices, customer lists, photos) 
+to external drive and cloud (Google Drive/OneDrive with password). Test 
+restoring once a month. 
+4. Use a password manager — Free ones like Bitwarden or LastPass generate 
+strong, unique passwords. Stop reusing them. 
+5. Train your staff — 10-minute chat: "Don't click suspicious links" , "Verify strange 
+calls" , "Report odd emails" . Free resources available online. 
+ 
+ 
+ 
+
+
+
+--- PAGE 7 ---
+What NexteraAI Security Does + Next Module Teaser + Quiz 
+ 
+How NexteraAI Security Helps SA Small Businesses Stay Safe 
+ 
+NexteraAI Security provides affordable, no-nonsense cybersecurity tailored for South 
+African small businesses: 
+• Easy-to-use tools: MFA setup, password managers, backup automation. 
+• Monitoring & alerts for threats targeting SA (phishing, ransomware). 
+• POPIA compliance checklists and basic training. 
+• 24/7 support from local experts who understand load-shedding, EFT scams, and 
+more. 
+• Scalable plans starting low—no big IT team needed. 
+We're here so you can focus on running your business, not fighting hackers. 
+ 

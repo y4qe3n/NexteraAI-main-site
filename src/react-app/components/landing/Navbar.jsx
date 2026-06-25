@@ -4,10 +4,10 @@ import { Menu, X, ShieldCheck } from "lucide-react";
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_ai-ops-hub-19/artifacts/2qu5rneg_favlogo.svg";
 
 const NAV = [
-  { label: "Product", href: "#solution" },
-  { label: "Features", href: "#features" },
-  { label: "Security", href: "#security" },
-  { label: "Pricing", href: "#pricing" },
+  { label: "Product", href: "/#solution" },
+  { label: "Features", href: "/#features" },
+  { label: "Security", href: "/#security" },
+  { label: "Pricing", href: "/#pricing" },
 ];
 
 export default function Navbar() {
@@ -35,7 +35,7 @@ export default function Navbar() {
               : "bg-transparent border border-transparent"
           }`}
         >
-          <a href="#top" data-testid="nav-logo" className="flex items-center gap-2.5 group">
+          <a href="/#top" data-testid="nav-logo" className="flex items-center gap-2.5 group">
             <div className="relative w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-br from-[#624CAB] to-[#2d2250] shadow-[0_8px_20px_-6px_rgba(98,76,171,0.7)]">
               <img src={LOGO_URL} alt="NexteraAI logo" className="w-6 h-6" style={{ filter: "brightness(0) invert(1)" }} />
             </div>
@@ -65,7 +65,7 @@ export default function Navbar() {
             >
               Sign in
             </a>
-            <a href="#pricing" data-testid="nav-cta-btn" className="nx-btn-primary nx-shine text-[13.5px] !py-2 !px-4">
+            <a href="/#pricing" data-testid="nav-cta-btn" className="nx-btn-primary nx-shine text-[13.5px] !py-2 !px-4">
               <ShieldCheck className="w-4 h-4" />
               Get Started
             </a>
@@ -97,7 +97,7 @@ export default function Navbar() {
             ))}
             <div className="border-t border-[rgba(159,134,232,0.15)] mt-2 pt-2">
               <a href="/login" className="px-4 py-3 text-sm text-[#c4b5fd] hover:text-white rounded-xl hover:bg-[rgba(98,76,171,0.15)] transition-colors">Sign in</a>
-              <a href="#pricing" onClick={() => setOpen(false)} data-testid="nav-mobile-cta" className="nx-btn-primary w-full justify-center text-sm py-3 mt-2">
+              <a href="/#pricing" onClick={() => setOpen(false)} data-testid="nav-mobile-cta" className="nx-btn-primary w-full justify-center text-sm py-3 mt-2">
                 <ShieldCheck className="w-4 h-4" /> Get Started
               </a>
             </div>

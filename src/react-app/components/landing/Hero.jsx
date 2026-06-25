@@ -17,16 +17,16 @@ export default function Hero() {
       // Mobile animations - reduced motion, fade only
       mm.add("(max-width: 479px)", () => {
         gsap.fromTo('.hero-badge, .hero-title-line, .hero-sub, .hero-cta > *, .hero-stats > *',
-          { opacity: 0 },
-          { opacity: 1, duration: 0.5, stagger: 0.1, ease: 'power1.out' }
+          { y: 12 },
+          { y: 0, duration: 0.5, stagger: 0.1, ease: 'power1.out' }
         );
         gsap.fromTo('.hero-dash',
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, delay: 0.3 }
+          { y: 18 },
+          { y: 0, duration: 0.6, delay: 0.3 }
         );
         gsap.fromTo('.hero-dash-row',
-          { opacity: 0 },
-          { opacity: 1, duration: 0.4, stagger: 0.05 }
+          { y: 8 },
+          { y: 0, duration: 0.4, stagger: 0.05 }
         );
         // Orbs drift on mobile (slower)
         gsap.to(".hero-orb-a", { x: 15, y: -10, duration: 15, yoyo: true, repeat: -1, ease: "sine.inOut" });
@@ -36,13 +36,13 @@ export default function Hero() {
       // Desktop animations - full motion
       mm.add("(min-width: 480px)", () => {
         const tl = gsap.timeline({ defaults: { ease: "power3.out" }, delay: 0.15 });
-        tl.from(".hero-badge", { y: 18, opacity: 0, duration: 0.7 })
-          .from(".hero-title-line", { y: 40, opacity: 0, duration: 0.9, stagger: 0.08 }, "-=0.4")
-          .from(".hero-sub", { y: 20, opacity: 0, duration: 0.7 }, "-=0.5")
-          .from(".hero-cta > *", { y: 16, opacity: 0, duration: 0.6, stagger: 0.08 }, "-=0.4")
-          .from(".hero-stats > *", { y: 12, opacity: 0, duration: 0.6, stagger: 0.08 }, "-=0.4")
-          .from(".hero-dash", { y: 60, opacity: 0, duration: 1, ease: "power4.out" }, "-=0.8")
-          .from(".hero-dash-row", { y: 10, opacity: 0, duration: 0.5, stagger: 0.06 }, "-=0.6");
+        tl.from(".hero-badge", { y: 18, duration: 0.7 })
+          .from(".hero-title-line", { y: 40, duration: 0.9, stagger: 0.08 }, "-=0.4")
+          .from(".hero-sub", { y: 20, duration: 0.7 }, "-=0.5")
+          .from(".hero-cta > *", { y: 16, duration: 0.6, stagger: 0.08 }, "-=0.4")
+          .from(".hero-stats > *", { y: 12, duration: 0.6, stagger: 0.08 }, "-=0.4")
+          .from(".hero-dash", { y: 60, duration: 1, ease: "power4.out" }, "-=0.8")
+          .from(".hero-dash-row", { y: 10, duration: 0.5, stagger: 0.06 }, "-=0.6");
 
         // Parallax on the floating dashboard
         gsap.to(".hero-dash", {
@@ -79,9 +79,13 @@ export default function Hero() {
       <div className="hero-orb-b absolute top-[28%] right-[4%] w-[240px] h-[240px] sm:w-[320px] sm:h-[320px] lg:w-[420px] lg:h-[420px] nx-glow-ring opacity-80" />
 
       <div className="relative nx-container">
-        <div className="hero-badge nx-badge mx-auto w-fit max-w-full mb-7">
+        <div className="hero-badge nx-badge mx-auto w-fit max-w-full mb-4">
           <Sparkles className="w-3.5 h-3.5" />
           <span>Built for South African SMEs · POPIA Ready</span>
+        </div>
+
+        <div className="mx-auto w-fit mb-7 px-4 py-1.5 rounded-full border border-[rgba(139,92,246,0.4)] bg-[rgba(139,92,246,0.1)] text-sm font-medium text-[#A78BFA] tracking-wide">
+          Controlled Beta Now Open
         </div>
 
         <h1 className="font-display text-center text-white font-semibold leading-[1.02] text-[32px] xs:text-[40px] sm:text-5xl md:text-6xl lg:text-[82px] max-w-5xl mx-auto">
@@ -92,15 +96,18 @@ export default function Hero() {
 
         <p className="hero-sub mt-7 max-w-2xl mx-auto text-center text-[#A89CC8] text-sm xs:text-base md:text-[17px] lg:text-lg leading-relaxed">
           NexteraAI is the Online Business Operations Center with built-in enterprise-grade
-          cybersecurity. Run your entire business, protect it with AI, and stay POPIA compliant —
+          cybersecurity. Run your entire business, protect your data, and stay POPIA compliant —
           without managing a single extra tool.
+        </p>
+        <p className="mt-3 max-w-xl mx-auto text-center text-[#8778AD] text-xs sm:text-sm leading-relaxed">
+          Limited paid onboarding for South African SMMEs that want early access to NexteraAI protection, compliance tooling, and direct support.
         </p>
 
         <div className="hero-cta mt-9 flex flex-row items-center justify-center gap-3">
           <a href="#pricing" data-testid="hero-cta-primary" className="nx-btn-primary nx-shine !py-3 xs:!py-3.5">
             <ShieldCheck className="w-4 h-4 flex-shrink-0" />
             <span className="mx-1">Get Started</span>
-            <ArrowRight className="w-4 h-4 flex-shrink-0" />
+            <ArrowRight className="w-4 h-4 flex-shrink-0" data-icon-end />
           </a>
           <a href="#solution" data-testid="hero-cta-secondary" className="nx-btn-ghost !py-3 xs:!py-3.5">
             <Play className="w-4 h-4 flex-shrink-0" />

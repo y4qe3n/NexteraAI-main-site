@@ -7,6 +7,8 @@
     "@hono/zod-validator": "^0.5.0",
     "@noble/hashes": "^1.6.0",
     "@number-flow/react": "^0.6.0",
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
     "@tsparticles/react": "^3.0.0",
     "@tsparticles/slim": "^3.9.1",
     "axios": "^1.7.7",
@@ -14,14 +16,16 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
     "gsap": "^3.15.0",
-    "hono": "4.7.7",
+    "hono": "^4.12.25",
     "lucide-react": "^0.510.0",
     "motion": "^12.38.0",
     "radix-ui": "^1.4.3",
-    "react": "^19.0.3",
-    "react-dom": "^19.0.3",
-    "react-router": "^7.5.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "^6.30.4",
     "tailwind-merge": "^3.4.0",
+    "three": "^0.184.0",
+    "three-globe": "^2.45.2",
     "zod": "^3.24.3"
   },
   "devDependencies": {
@@ -30,9 +34,9 @@
     "@getmocha/users-service": "^0.0.4",
     "@getmocha/vite-plugins": "latest",
     "@types/node": "22.14.1",
-    "@types/react": "19.0.10",
-    "@types/react-dom": "19.0.4",
-    "@vitejs/plugin-react": "^5.1.4",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "5.2.0",
     "autoprefixer": "^10.4.21",
     "eslint": "9.25.1",
     "eslint-plugin-react-hooks": "5.2.0",
@@ -48,11 +52,16 @@
     "wrangler": "^4.33.0"
   },
   "scripts": {
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/guard-build-secrets.js",
     "cf-typegen": "wrangler types",
     "check": "tsc && vite build && wrangler deploy --dry-run",
+    "deploy": "wrangler deploy --config wrangler.json",
     "dev": "vite",
     "knip": "knip",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:payfast": "node --experimental-strip-types scripts/payfast-sandbox-tests.ts",
+    "test:agent-invites": "node --experimental-strip-types scripts/agent-invite-tests.ts",
+    "test:desktop-updates": "node --experimental-strip-types scripts/desktop-update-tests.ts",
+    "test:training-academy": "node --experimental-strip-types scripts/training-academy-tests.ts"
   }
 }
